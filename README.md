@@ -1,40 +1,58 @@
-# Welcome to your Convex + Next.js app
+# Kapit Lang: A Web-Based Application for Simulating PUV Terminal Dynamics in Bulacan
 
-This is a [Convex](https://convex.dev/) project created with [`npm create convex`](https://www.npmjs.com/package/create-convex).
+## Project Overview
 
-After the initial setup (<2 minutes) you'll have a working full-stack app using:
+**Kapit Lang** aims to address the daily travel unpredictability experienced by local commuters in Bulacan. Standard navigation applications calculate travel times based solely on road distance and vehicle traffic, rendering them inadequate for commuters relying on Public Utility Vehicles (PUVs). 
 
-- Convex as your backend (database, server logic)
-- [React](https://react.dev/) as your frontend (web page interactivity)
-- [Next.js](https://nextjs.org/) for optimized web hosting and page routing
-- [Tailwind](https://tailwindcss.com/) for building great looking accessible UI
+To bridge this gap, our team developed a web-based stochastic simulation application that provides realistic, probability-based commute estimates. The system actively models the localized "fill-and-go" terminal dynamics, rush hour queue delays, and frequent en-route stops characteristic of jeepneys and UV Express vans operating along the MacArthur Highway.
 
-## Get started
+## Key Features
 
-If you just cloned this codebase and didn't use `npm create convex`, run:
+- **Stochastic Simulation:** Provides realistic, probability-based commute estimates rather than just fixed distance/time calculations.
+- **Terminal Dynamics Modeling:** Actively simulates the "fill-and-go" behavior of PUVs at terminals.
+- **Tailored for Bulacan:** Specifically designed for MacArthur Highway routes (Jeepneys and UV Express).
+- **Congestion Awareness:** Models rush hour queue delays and frequent stops.
 
-```
-npm install
-npm run dev
-```
+## Tech Stack
 
-If you're reading this README on GitHub and want to use this template, run:
+This project is built using:
 
-```
-npm create convex@latest -- -t nextjs
-```
+- **Frontend:** [Next.js](https://nextjs.org/) (React)
+- **Backend:** [Convex](https://convex.dev/) (Database & Serverless Logic)
+- **Styling:** [Tailwind CSS](https://tailwindcss.com/) & [Shadcn UI](https://ui.shadcn.com/)
+- **Icons:** [Lucide React](https://lucide.dev/)
 
-## Learn more
+## Getting Started
 
-To learn more about developing your project with Convex, check out:
+### Prerequisites
 
-- The [Tour of Convex](https://docs.convex.dev/get-started) for a thorough introduction to Convex principles.
-- The rest of [Convex docs](https://docs.convex.dev/) to learn about all Convex features.
-- [Stack](https://stack.convex.dev/) for in-depth articles on advanced topics.
+- Node.js installed
+- Convex account (for backend)
 
-## Join the community
+### Installation
 
-Join thousands of developers building full-stack apps with Convex:
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd kapitlang
+   ```
 
-- Join the [Convex Discord community](https://convex.dev/community) to get help in real-time.
-- Follow [Convex on GitHub](https://github.com/get-convex/), star and contribute to the open-source implementation of Convex.
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Run the development server:
+   ```bash
+   npm run dev
+   ```
+
+The application will be available at `http://localhost:3000`.
+
+## Learn More
+
+To learn more about the technologies used:
+
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Convex Documentation](https://docs.convex.dev/)
+- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
