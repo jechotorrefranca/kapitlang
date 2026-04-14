@@ -1,16 +1,11 @@
 import type { Metadata } from "next";
-import { Inter, Manrope } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import ConvexClientProvider from "@/components/ConvexClientProvider";
 import { cn } from "@/lib/utils";
 
 const inter = Inter({
-  variable: "--font-body",
-  subsets: ["latin"],
-});
-
-const manrope = Manrope({
-  variable: "--font-headline",
+  variable: "--font-sans",
   subsets: ["latin"],
 });
 
@@ -28,8 +23,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("antialiased", inter.variable, manrope.variable)} suppressHydrationWarning>
-      <body className="min-h-screen bg-background text-on-surface font-body">
+    <html lang="en" className={cn("antialiased", inter.variable)} suppressHydrationWarning>
+      <body className="min-h-screen bg-background font-sans">
         <ConvexClientProvider>{children}</ConvexClientProvider>
       </body>
     </html>
