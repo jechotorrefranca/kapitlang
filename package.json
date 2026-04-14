@@ -9,7 +9,10 @@
     "predev": "convex dev --until-success && convex dashboard",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint . --ignore-pattern \"convex/_generated/**\""
+    "lint": "oxlint . -c .oxlintrc.json",
+    "lint:fix": "oxlint . -c .oxlintrc.json --fix",
+    "lint:eslint": "eslint . --ignore-pattern \"convex/_generated/**\"",
+    "prepare": "husky"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.0",
@@ -44,9 +47,17 @@
     "@types/react-dom": "^19.2.3",
     "eslint": "^9.39.4",
     "eslint-config-next": "16.2.3",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
     "npm-run-all2": "^8.0.4",
+    "oxlint": "^1.60.0",
     "prettier": "^3.8.2",
     "tailwindcss": "^4.2.2",
     "typescript": "^5.9.3"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "oxlint --fix"
+    ]
   }
 }
