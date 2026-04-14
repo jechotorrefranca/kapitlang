@@ -1,10 +1,10 @@
 "use client";
 
 import { useMutation, useQuery } from "convex/react";
-import { api } from "../convex/_generated/api";
-import Link from "next/link";
 import Image from "next/image";
-import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import { api } from "../convex/_generated/api";
 
 export default function Home() {
   return (
@@ -30,7 +30,7 @@ export default function Home() {
             />
           </div>
           <h1 className="font-semibold text-slate-800 dark:text-slate-200">
-            Convex + Next.js
+            Convex + Next.jss
           </h1>
         </div>
         <AuthPopoverButton />
