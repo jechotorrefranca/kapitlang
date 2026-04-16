@@ -1,10 +1,15 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Bus, Car, CloudSun, Lightbulb, Zap } from "lucide-react";
+import { useState } from "react";
 
 export function SimulationPanel() {
+  const [vehicle, setVehicle] = useState<"jeep" | "uv">("jeep");
+
   return (
     <section className="lg:col-span-3 space-y-6">
       <Card className="p-5 shadow-sm">
@@ -20,7 +25,7 @@ export function SimulationPanel() {
             >
               Origin
             </label>
-            <NativeSelect id="origin-terminal" defaultValue="Bocaue">
+            <NativeSelect id="origin-terminal" defaultValue="Bocaue" className="w-full">
               <NativeSelectOption value="Bocaue">Bocaue Central</NativeSelectOption>
               <NativeSelectOption value="Marilao">Marilao North</NativeSelectOption>
             </NativeSelect>
@@ -32,7 +37,7 @@ export function SimulationPanel() {
             >
               Destination
             </label>
-            <NativeSelect id="destination-terminal" defaultValue="Meycauayan">
+            <NativeSelect id="destination-terminal" defaultValue="Meycauayan" className="w-full">
               <NativeSelectOption value="Meycauayan">Meycauayan NLT</NativeSelectOption>
               <NativeSelectOption value="Manila">Manila Gateway</NativeSelectOption>
             </NativeSelect>
@@ -42,37 +47,49 @@ export function SimulationPanel() {
               Vehicle
             </p>
             <div className="grid grid-cols-2 gap-2 bg-muted p-1 rounded-md border">
-              <button className="flex items-center justify-center gap-2 py-1.5 rounded bg-background shadow-xs text-xs font-semibold text-emerald-600 border border-emerald-100 dark:border-emerald-900/30">
+              <button
+                onClick={() => setVehicle("jeep")}
+                className={`flex items-center justify-center gap-2 py-1.5 rounded transition-all text-xs font-semibold ${
+                  vehicle === "jeep"
+                    ? "bg-background shadow-xs text-emerald-600 border border-emerald-100 dark:border-emerald-900/30"
+                    : "text-muted-foreground hover:bg-background/50"
+                }`}
+              >
                 <Bus className="size-3.5" />
                 Jeep
               </button>
-              <button className="flex items-center justify-center gap-2 py-1.5 rounded text-xs font-medium text-muted-foreground hover:bg-background/50">
+              <button
+                onClick={() => setVehicle("uv")}
+                className={`flex items-center justify-center gap-2 py-1.5 rounded transition-all text-xs font-semibold ${
+                  vehicle === "uv"
+                    ? "bg-background shadow-xs text-emerald-600 border border-emerald-100 dark:border-emerald-900/30"
+                    : "text-muted-foreground hover:bg-background/50"
+                }`}
+              >
                 <Car className="size-3.5" />
                 UV
               </button>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
+          <div>
+            <div className="flex justify-between items-center mb-1.5">
               <label
                 htmlFor="departure-time"
-                className="text-[10px] font-bold uppercase text-muted-foreground mb-1.5 block"
+                className="text-[10px] font-bold uppercase text-muted-foreground block"
               >
                 Time
               </label>
-              <Input
-                id="departure-time"
-                type="time"
-                defaultValue="08:30"
-                className="h-9 text-xs"
-              />
-            </div>
-            <div className="flex items-end pb-1.5">
-              <span className="flex items-center gap-1.5 px-2 py-1 rounded bg-orange-100 dark:bg-orange-950/30 text-orange-700 dark:text-orange-400 text-[9px] font-bold border border-orange-200 dark:border-orange-900/50">
+              <span className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-orange-100 dark:bg-orange-950/30 text-orange-700 dark:text-orange-400 text-[9px] font-bold border border-orange-200 dark:border-orange-900/50">
                 <div className="size-1 rounded-full bg-orange-500 animate-pulse" />
                 PEAK
               </span>
             </div>
+            <Input
+              id="departure-time"
+              type="time"
+              defaultValue="08:30"
+              className="h-9 text-xs w-full"
+            />
           </div>
           <div>
             <label
@@ -81,9 +98,13 @@ export function SimulationPanel() {
             >
               Weather
             </label>
-            <div className="relative">
+            <div className="relative w-full">
               <CloudSun className="size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <NativeSelect id="weather-select" defaultValue="Sunny" className="pl-9 h-9 text-xs">
+              <NativeSelect
+                id="weather-select"
+                defaultValue="Sunny"
+                className="pl-9 h-9 text-xs w-full"
+              >
                 <NativeSelectOption value="Sunny">Sunny</NativeSelectOption>
                 <NativeSelectOption value="Rainy">Rainy</NativeSelectOption>
               </NativeSelect>
