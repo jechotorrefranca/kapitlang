@@ -6,7 +6,6 @@ import "leaflet/dist/leaflet.css";
 import { useEffect, useMemo, useState } from "react";
 import { MapContainer, Marker, Polyline, TileLayer, useMap, useMapEvents } from "react-leaflet";
 
-// Fix for default Leaflet icon not appearing
 // @ts-expect-error - internal leaflet property
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -36,7 +35,6 @@ function MapController({
 }: InteractiveMapProps) {
   const map = useMap();
 
-  // Handling geolocation
   useEffect(() => {
     if (shouldLocate) {
       map.locate({ setView: true, maxZoom: 16 });
@@ -65,11 +63,9 @@ export default function InteractiveMap(props: InteractiveMapProps) {
   const { origin, destination, onOriginUpdate, onDestinationUpdate } = props;
   const [routeData, setRouteData] = useState<[number, number][]>([]);
 
-  // Fetch route from OSRM with waypoints to force MacArthur Highway
   useEffect(() => {
     const fetchRoute = async () => {
       try {
-        // Find intermediate waypoints from the HIGHWAY_SEQUENCE
         const startIndex = HIGHWAY_SEQUENCE.indexOf(origin.name);
         const endIndex = HIGHWAY_SEQUENCE.indexOf(destination.name);
         
@@ -98,7 +94,6 @@ export default function InteractiveMap(props: InteractiveMapProps) {
         const data = await response.json();
         
         if (data.code === "Ok" && data.routes?.[0]?.geometry?.coordinates) {
-          // OSRM returns [lng, lat], Leaflet needs [lat, lng]
           const coords = data.routes[0].geometry.coordinates.map((coord: [number, number]) => [coord[1], coord[0]]);
           setRouteData(coords);
         }
@@ -110,7 +105,6 @@ export default function InteractiveMap(props: InteractiveMapProps) {
     fetchRoute();
   }, [origin.coords, destination.coords, origin.name, destination.name]);
 
-  // Custom emerald pin icon for Origin (Solid Fill)
   const originIcon = useMemo(() => L.divIcon({
     html: `
       <div class="flex items-center justify-center">
@@ -122,10 +116,9 @@ export default function InteractiveMap(props: InteractiveMapProps) {
     `,
     className: "",
     iconSize: [36, 36],
-    iconAnchor: [18, 36] // Tip at the bottom center
+    iconAnchor: [18, 36]
   }), []);
 
-  // Custom dark pin icon for Destination (Solid Fill)
   const destIcon = useMemo(() => L.divIcon({
     html: `
       <div class="flex items-center justify-center">
@@ -137,7 +130,7 @@ export default function InteractiveMap(props: InteractiveMapProps) {
     `,
     className: "",
     iconSize: [36, 36],
-    iconAnchor: [18, 36] // Tip at the bottom center
+    iconAnchor: [18, 36]
   }), []);
 
   return (
@@ -152,25 +145,22 @@ export default function InteractiveMap(props: InteractiveMapProps) {
         url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
       />
       
-      {/* Route Line with Glow Effect */}
       {routeData.length > 0 && (
         <>
-          {/* Outer Glow */}
           <Polyline 
             positions={routeData} 
             pathOptions={{ 
-              color: "#10b981", // emerald-500
+              color: "#10b981",
               weight: 10,
               opacity: 0.3,
               lineCap: "round",
               lineJoin: "round",
             }} 
           />
-          {/* Inner Sharp Line */}
           <Polyline 
             positions={routeData} 
             pathOptions={{ 
-              color: "#059669", // emerald-600
+              color: "#059669",
               weight: 4,
               opacity: 1,
               lineCap: "round",

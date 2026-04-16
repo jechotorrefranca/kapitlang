@@ -17,7 +17,6 @@ export default function Home() {
       name: getPresetName(lat, lng),
       coords: { lat, lng }
     });
-    // Reset simulation if location changes
     if (simulationStatus === "completed") setSimulationStatus("idle");
   };
 
@@ -26,13 +25,11 @@ export default function Home() {
       name: getPresetName(lat, lng),
       coords: { lat, lng }
     });
-    // Reset simulation if destination changes
     if (simulationStatus === "completed") setSimulationStatus("idle");
   };
 
   const handleRunSimulation = () => {
     setSimulationStatus("simulating");
-    // Mock simulation duration (e.g., 2.5 seconds)
     setTimeout(() => {
       setSimulationStatus("completed");
     }, 2500);

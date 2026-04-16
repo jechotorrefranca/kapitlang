@@ -37,7 +37,6 @@ export function MapDisplay({ origin, destination, onOriginUpdate, onDestinationU
 
   const handleLocateMe = () => {
     setShouldLocate(true);
-    // Reset after a short delay so it can be triggered again
     setTimeout(() => setShouldLocate(false), 1000);
   };
 
@@ -53,13 +52,10 @@ export function MapDisplay({ origin, destination, onOriginUpdate, onDestinationU
           onPinComplete={() => setPinMode(null)}
           shouldLocate={shouldLocate}
           onLocateComplete={(lat, lng) => {
-            // Optional: what to do when user is found? Maybe set as origin?
-            // For now just focus is enough (handled in InteractiveMap)
             console.log("User located at:", lat, lng);
           }}
         />
 
-        {/* Floating Controls */}
         <div className="absolute top-4 right-4 z-1000 flex flex-col gap-2">
           <Button 
             size="sm" 
@@ -89,7 +85,6 @@ export function MapDisplay({ origin, destination, onOriginUpdate, onDestinationU
           </Button>
         </div>
 
-        {/* Status indicator */}
         <div className="absolute top-4 left-4 z-1000 bg-background/80 backdrop-blur border px-2.5 py-1.5 rounded-md shadow-xs flex items-center gap-3">
           <div className="flex flex-col">
             <span className="text-[7px] font-bold text-muted-foreground uppercase leading-none mb-1">

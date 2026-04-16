@@ -5,7 +5,6 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { Suspense, useRef } from "react";
 import * as THREE from "three";
 
-// Pre-load assets to avoid flickering when the component mounts
 useGLTF.preload("/3d/roadsidetrees.glb");
 useGLTF.preload("/3d/suv.glb");
 
@@ -53,7 +52,6 @@ function SUV() {
 
   useFrame((state) => {
     if (suvRef.current) {
-      // Gentle bounce/vibration effect - higher relative to road
       suvRef.current.position.y = 0.8 + Math.sin(state.clock.elapsedTime * 15) * 0.02;
     }
   });
@@ -64,7 +62,7 @@ function SUV() {
       object={scene} 
       position={[0, 0.8, 0]} 
       rotation={[0, Math.PI / 2, 0]}
-      scale={1} // Made car bigger
+      scale={1}
     />
   );
 }
@@ -79,7 +77,6 @@ export function SimulationLoader() {
       </div>
       
       <Canvas shadows gl={{ antialias: true }}>
-        {/* Sky background */}
         <color attach="background" args={["#87ceeb"]} />
         
         <PerspectiveCamera makeDefault position={[5, 3, 6]} fov={35} />
@@ -88,7 +85,7 @@ export function SimulationLoader() {
         <Environment preset="city" />
         
         <Suspense fallback={null}>
-          <group position={[0, -1.2, 0]}> {/* Lowered roadside further */}
+          <group position={[0, -1.2, 0]}>
             <RoadLoop />
             <SUV />
           </group>

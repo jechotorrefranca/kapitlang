@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
+import { LocationState, TERMINAL_COORDINATES, TerminalName, UI_TOWNS } from "@/lib/constants";
 import { Bus, Car, CloudSun, Lightbulb, Zap } from "lucide-react";
 import { useState } from "react";
-import { LocationState, TERMINAL_COORDINATES, TerminalName, UI_TOWNS } from "@/lib/constants";
 
 interface SimulationPanelProps {
   origin: LocationState;
