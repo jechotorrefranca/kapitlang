@@ -1,10 +1,10 @@
 "use client";
 
+import { LocationState } from "@/lib/constants";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { useEffect, useMemo } from "react";
-import { MapContainer, Marker, TileLayer, useMap } from "react-leaflet";
-import { TERMINAL_COORDINATES, TerminalName } from "@/lib/constants";
+import { useEffect, useMemo, useState } from "react";
+import { MapContainer, Marker, Polyline, TileLayer, useMap, useMapEvents } from "react-leaflet";
 
 // Fix for default Leaflet icon not appearing
 // @ts-expect-error - internal leaflet property
@@ -16,52 +16,111 @@ L.Icon.Default.mergeOptions({
 });
 
 interface InteractiveMapProps {
-  origin: TerminalName;
-  destination: TerminalName;
+  origin: LocationState;
+  destination: LocationState;
+  onOriginUpdate: (lat: number, lng: number) => void;
+  onDestinationUpdate: (lat: number, lng: number) => void;
+  pinMode: "origin" | "destination" | null;
+  onPinComplete: () => void;
+  shouldLocate: boolean;
+  onLocateComplete: (lat: number, lng: number) => void;
 }
 
-function MapController({ origin, destination }: InteractiveMapProps) {
+function MapController({ 
+  pinMode, 
+  onOriginUpdate, 
+  onDestinationUpdate, 
+  onPinComplete,
+  shouldLocate,
+  onLocateComplete
+}: InteractiveMapProps) {
   const map = useMap();
 
+  // Handling geolocation
   useEffect(() => {
-    const originCoords = TERMINAL_COORDINATES[origin];
-    const destCoords = TERMINAL_COORDINATES[destination];
-
-    if (originCoords && destCoords) {
-      const bounds = L.latLngBounds(
-        [originCoords.lat, originCoords.lng],
-        [destCoords.lat, destCoords.lng]
-      );
-      map.fitBounds(bounds, { padding: [50, 50], animate: true });
+    if (shouldLocate) {
+      map.locate({ setView: true, maxZoom: 16 });
     }
-  }, [origin, destination, map]);
+  }, [shouldLocate, map]);
+
+  useMapEvents({
+    click(e) {
+      if (pinMode === "origin") {
+        onOriginUpdate(e.latlng.lat, e.latlng.lng);
+        onPinComplete();
+      } else if (pinMode === "destination") {
+        onDestinationUpdate(e.latlng.lat, e.latlng.lng);
+        onPinComplete();
+      }
+    },
+    locationfound(e) {
+      onLocateComplete(e.latlng.lat, e.latlng.lng);
+    },
+  });
 
   return null;
 }
 
-export default function InteractiveMap({ origin, destination }: InteractiveMapProps) {
-  const originCoords = TERMINAL_COORDINATES[origin];
-  const destCoords = TERMINAL_COORDINATES[destination];
+export default function InteractiveMap(props: InteractiveMapProps) {
+  const { origin, destination, onOriginUpdate, onDestinationUpdate } = props;
+  const [routeData, setRouteData] = useState<[number, number][]>([]);
 
-  // Custom emerald icon for Origin
+  // Fetch route from OSRM
+  useEffect(() => {
+    const fetchRoute = async () => {
+      try {
+        const url = `https://router.project-osrm.org/route/v1/driving/${origin.coords.lng},${origin.coords.lat};${destination.coords.lng},${destination.coords.lat}?geometries=geojson&overview=full`;
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data.code === "Ok" && data.routes?.[0]?.geometry?.coordinates) {
+          // OSRM returns [lng, lat], Leaflet needs [lat, lng]
+          const coords = data.routes[0].geometry.coordinates.map((coord: [number, number]) => [coord[1], coord[0]]);
+          setRouteData(coords);
+        }
+      } catch (error) {
+        console.error("Error fetching route:", error);
+      }
+    };
+
+    fetchRoute();
+  }, [origin.coords, destination.coords]);
+
+  // Custom emerald pin icon for Origin (Solid Fill)
   const originIcon = useMemo(() => L.divIcon({
-    className: "bg-emerald-600 rounded-full border-2 border-white shadow-lg",
-    iconSize: [12, 12],
-    iconAnchor: [6, 6]
+    html: `
+      <div class="flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="currentColor" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-600 drop-shadow-md">
+          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+          <circle cx="12" cy="10" r="3" fill="white"/>
+        </svg>
+      </div>
+    `,
+    className: "",
+    iconSize: [36, 36],
+    iconAnchor: [18, 36] // Tip at the bottom center
   }), []);
 
-  // Custom dark icon for Destination
+  // Custom dark pin icon for Destination (Solid Fill)
   const destIcon = useMemo(() => L.divIcon({
-    className: "bg-zinc-800 rounded-full border-2 border-white shadow-lg",
-    iconSize: [12, 12],
-    iconAnchor: [6, 6]
+    html: `
+      <div class="flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="currentColor" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-zinc-800 drop-shadow-md">
+          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+          <circle cx="12" cy="10" r="3" fill="white"/>
+        </svg>
+      </div>
+    `,
+    className: "",
+    iconSize: [36, 36],
+    iconAnchor: [18, 36] // Tip at the bottom center
   }), []);
 
   return (
     <MapContainer
       center={[14.75, 120.95]}
       zoom={12}
-      className="h-full w-full z-0"
+      className="h-full w-full z-0 cursor-crosshair"
       zoomControl={false}
     >
       <TileLayer
@@ -69,15 +128,61 @@ export default function InteractiveMap({ origin, destination }: InteractiveMapPr
         url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
       />
       
-      {originCoords && (
-        <Marker position={[originCoords.lat, originCoords.lng]} icon={originIcon} />
+      {/* Route Line with Glow Effect */}
+      {routeData.length > 0 && (
+        <>
+          {/* Outer Glow */}
+          <Polyline 
+            positions={routeData} 
+            pathOptions={{ 
+              color: "#10b981", // emerald-500
+              weight: 10,
+              opacity: 0.3,
+              lineCap: "round",
+              lineJoin: "round",
+            }} 
+          />
+          {/* Inner Sharp Line */}
+          <Polyline 
+            positions={routeData} 
+            pathOptions={{ 
+              color: "#059669", // emerald-600
+              weight: 4,
+              opacity: 1,
+              lineCap: "round",
+              lineJoin: "round",
+            }} 
+          />
+        </>
       )}
       
-      {destCoords && (
-        <Marker position={[destCoords.lat, destCoords.lng]} icon={destIcon} />
-      )}
+      <Marker 
+        position={[origin.coords.lat, origin.coords.lng]} 
+        icon={originIcon} 
+        draggable={true}
+        eventHandlers={{
+          dragend: (e) => {
+            const marker = e.target;
+            const position = marker.getLatLng();
+            onOriginUpdate(position.lat, position.lng);
+          },
+        }}
+      />
+      
+      <Marker 
+        position={[destination.coords.lat, destination.coords.lng]} 
+        icon={destIcon} 
+        draggable={true}
+        eventHandlers={{
+          dragend: (e) => {
+            const marker = e.target;
+            const position = marker.getLatLng();
+            onDestinationUpdate(position.lat, position.lng);
+          },
+        }}
+      />
 
-      <MapController origin={origin} destination={destination} />
+      <MapController {...props} />
     </MapContainer>
   );
 }

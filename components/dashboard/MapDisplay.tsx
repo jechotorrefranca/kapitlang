@@ -1,9 +1,12 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Activity } from "lucide-react";
+import { LocationState } from "@/lib/constants";
+import { cn } from "@/lib/utils";
+import { Activity, Flag, MapPin, Navigation } from "lucide-react";
 import dynamic from "next/dynamic";
-import { TerminalName } from "@/lib/constants";
+import { useState } from "react";
 
 const DynamicInteractiveMap = dynamic(
   () => import("./InteractiveMap"),
@@ -18,24 +21,85 @@ const DynamicInteractiveMap = dynamic(
 );
 
 interface MapDisplayProps {
-  origin: TerminalName;
-  destination: TerminalName;
+  origin: LocationState;
+  destination: LocationState;
+  onOriginUpdate: (lat: number, lng: number) => void;
+  onDestinationUpdate: (lat: number, lng: number) => void;
 }
 
-export function MapDisplay({ origin, destination }: MapDisplayProps) {
+export function MapDisplay({ origin, destination, onOriginUpdate, onDestinationUpdate }: MapDisplayProps) {
+  const [pinMode, setPinMode] = useState<"origin" | "destination" | null>(null);
+  const [shouldLocate, setShouldLocate] = useState(false);
+
+  const togglePinMode = (mode: "origin" | "destination") => {
+    setPinMode(prev => prev === mode ? null : mode);
+  };
+
+  const handleLocateMe = () => {
+    setShouldLocate(true);
+    // Reset after a short delay so it can be triggered again
+    setTimeout(() => setShouldLocate(false), 1000);
+  };
+
   return (
     <section className="lg:col-span-5 relative h-[600px] lg:h-auto">
       <Card className="h-full w-full overflow-hidden border shadow-sm relative bg-zinc-100 dark:bg-zinc-900">
-        <DynamicInteractiveMap origin={origin} destination={destination} />
+        <DynamicInteractiveMap 
+          origin={origin} 
+          destination={destination}
+          onOriginUpdate={onOriginUpdate}
+          onDestinationUpdate={onDestinationUpdate}
+          pinMode={pinMode}
+          onPinComplete={() => setPinMode(null)}
+          shouldLocate={shouldLocate}
+          onLocateComplete={(lat, lng) => {
+            // Optional: what to do when user is found? Maybe set as origin?
+            // For now just focus is enough (handled in InteractiveMap)
+            console.log("User located at:", lat, lng);
+          }}
+        />
 
+        {/* Floating Controls */}
+        <div className="absolute top-4 right-4 z-[1000] flex flex-col gap-2">
+          <Button 
+            size="sm" 
+            variant={pinMode === "origin" ? "default" : "secondary"}
+            className={cn("gap-2 shadow-md h-9 px-3", pinMode === "origin" && "bg-emerald-600 hover:bg-emerald-700")}
+            onClick={() => togglePinMode("origin")}
+          >
+            <MapPin className="size-3.5" />
+            <span className="text-[10px] font-bold uppercase">Set Origin</span>
+          </Button>
+          <Button 
+            size="sm" 
+            variant={pinMode === "destination" ? "default" : "secondary"}
+            className={cn("gap-2 shadow-md h-9 px-3", pinMode === "destination" && "bg-zinc-800 hover:bg-zinc-900")}
+            onClick={() => togglePinMode("destination")}
+          >
+            <Flag className="size-3.5" />
+            <span className="text-[10px] font-bold uppercase">Set Dest</span>
+          </Button>
+          <Button 
+            size="icon" 
+            variant="secondary"
+            className="size-9 shadow-md mt-2"
+            onClick={handleLocateMe}
+          >
+            <Navigation className="size-4" />
+          </Button>
+        </div>
+
+        {/* Status indicator */}
         <div className="absolute top-4 left-4 z-[1000] bg-background/80 backdrop-blur border px-2.5 py-1.5 rounded-md shadow-xs flex items-center gap-3">
           <div className="flex flex-col">
             <span className="text-[7px] font-bold text-muted-foreground uppercase leading-none mb-1">
               Status
             </span>
-            <span className="text-[10px] font-bold text-emerald-600">LIVE TRACKING</span>
+            <span className="text-[10px] font-bold text-emerald-600">
+              {pinMode ? `SELECTING ${pinMode.toUpperCase()}` : "LIVE TRACKING"}
+            </span>
           </div>
-          <Activity className="size-3 text-emerald-500" />
+          <Activity className={cn("size-3 text-emerald-500", pinMode && "animate-pulse")} />
         </div>
       </Card>
     </section>

@@ -6,22 +6,33 @@ import { Input } from "@/components/ui/input";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Bus, Car, CloudSun, Lightbulb, Zap } from "lucide-react";
 import { useState } from "react";
-import { TerminalName } from "@/lib/constants";
+import { LocationState, TERMINAL_COORDINATES, TerminalName } from "@/lib/constants";
 
 interface SimulationPanelProps {
-  origin: TerminalName;
-  destination: TerminalName;
-  onOriginChange: (value: TerminalName) => void;
-  onDestinationChange: (value: TerminalName) => void;
+  origin: LocationState;
+  destination: LocationState;
+  onOriginUpdate: (lat: number, lng: number) => void;
+  onDestinationUpdate: (lat: number, lng: number) => void;
 }
 
 export function SimulationPanel({ 
   origin, 
   destination, 
-  onOriginChange, 
-  onDestinationChange 
+  onOriginUpdate,
+  onDestinationUpdate
 }: SimulationPanelProps) {
   const [vehicle, setVehicle] = useState<"jeep" | "uv">("jeep");
+
+  const handleSelectionChange = (val: string, type: "origin" | "destination") => {
+    if (val === "Custom PIN") return;
+    const coords = TERMINAL_COORDINATES[val as Exclude<TerminalName, "Custom PIN">];
+    if (coords) {
+      if (type === "origin") onOriginUpdate(coords.lat, coords.lng);
+      else onDestinationUpdate(coords.lat, coords.lng);
+    }
+  };
+
+  const townOptions = Object.keys(TERMINAL_COORDINATES) as Exclude<TerminalName, "Custom PIN">[];
 
   return (
     <section className="lg:col-span-3 space-y-6">
@@ -40,12 +51,16 @@ export function SimulationPanel({
             </label>
             <NativeSelect 
               id="origin-terminal" 
-              value={origin} 
-              onChange={(e) => onOriginChange(e.target.value as TerminalName)}
+              value={origin.name}
+              onChange={(e) => handleSelectionChange(e.target.value, "origin")}
               className="w-full"
             >
-              <NativeSelectOption value="Bocaue">Bocaue Central</NativeSelectOption>
-              <NativeSelectOption value="Marilao">Marilao North</NativeSelectOption>
+              {townOptions.map(town => (
+                <NativeSelectOption key={town} value={town}>{town}</NativeSelectOption>
+              ))}
+              {origin.name === "Custom PIN" && (
+                <NativeSelectOption value="Custom PIN">Custom Location (Map Pin)</NativeSelectOption>
+              )}
             </NativeSelect>
           </div>
           <div>
@@ -57,12 +72,16 @@ export function SimulationPanel({
             </label>
             <NativeSelect 
               id="destination-terminal" 
-              value={destination} 
-              onChange={(e) => onDestinationChange(e.target.value as TerminalName)}
+              value={destination.name}
+              onChange={(e) => handleSelectionChange(e.target.value, "destination")}
               className="w-full"
             >
-              <NativeSelectOption value="Meycauayan">Meycauayan NLT</NativeSelectOption>
-              <NativeSelectOption value="Manila">Manila Gateway</NativeSelectOption>
+               {townOptions.map(town => (
+                <NativeSelectOption key={town} value={town}>{town}</NativeSelectOption>
+              ))}
+              {destination.name === "Custom PIN" && (
+                <NativeSelectOption value="Custom PIN">Custom Location (Map Pin)</NativeSelectOption>
+              )}
             </NativeSelect>
           </div>
           <div>
