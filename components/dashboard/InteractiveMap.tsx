@@ -1,6 +1,6 @@
 "use client";
 
-import { LocationState } from "@/lib/constants";
+import { Coordinate, HIGHWAY_SEQUENCE, LocationState, TERMINAL_COORDINATES } from "@/lib/constants";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useEffect, useMemo, useState } from "react";
@@ -65,11 +65,35 @@ export default function InteractiveMap(props: InteractiveMapProps) {
   const { origin, destination, onOriginUpdate, onDestinationUpdate } = props;
   const [routeData, setRouteData] = useState<[number, number][]>([]);
 
-  // Fetch route from OSRM
+  // Fetch route from OSRM with waypoints to force MacArthur Highway
   useEffect(() => {
     const fetchRoute = async () => {
       try {
-        const url = `https://router.project-osrm.org/route/v1/driving/${origin.coords.lng},${origin.coords.lat};${destination.coords.lng},${destination.coords.lat}?geometries=geojson&overview=full`;
+        // Find intermediate waypoints from the HIGHWAY_SEQUENCE
+        const startIndex = HIGHWAY_SEQUENCE.indexOf(origin.name);
+        const endIndex = HIGHWAY_SEQUENCE.indexOf(destination.name);
+        
+        let waypoints: Coordinate[] = [origin.coords];
+        
+        if (startIndex !== -1 && endIndex !== -1) {
+          const isNorthbound = startIndex < endIndex;
+          const step = isNorthbound ? 1 : -1;
+          
+          for (let i = startIndex + step; isNorthbound ? i < endIndex : i > endIndex; i += step) {
+            const town = HIGHWAY_SEQUENCE[i];
+            if (town !== "Custom PIN") {
+              waypoints.push(TERMINAL_COORDINATES[town]);
+            }
+          }
+        }
+        
+        waypoints.push(destination.coords);
+
+        const waypointStr = waypoints
+          .map(wp => `${wp.lng},${wp.lat}`)
+          .join(";");
+
+        const url = `https://router.project-osrm.org/route/v1/driving/${waypointStr}?geometries=geojson&overview=full`;
         const response = await fetch(url);
         const data = await response.json();
         
@@ -84,7 +108,7 @@ export default function InteractiveMap(props: InteractiveMapProps) {
     };
 
     fetchRoute();
-  }, [origin.coords, destination.coords]);
+  }, [origin.coords, destination.coords, origin.name, destination.name]);
 
   // Custom emerald pin icon for Origin (Solid Fill)
   const originIcon = useMemo(() => L.divIcon({

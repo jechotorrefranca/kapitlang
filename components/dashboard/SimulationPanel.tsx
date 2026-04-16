@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Bus, Car, CloudSun, Lightbulb, Zap } from "lucide-react";
 import { useState } from "react";
-import { LocationState, TERMINAL_COORDINATES, TerminalName } from "@/lib/constants";
+import { LocationState, TERMINAL_COORDINATES, TerminalName, UI_TOWNS } from "@/lib/constants";
 
 interface SimulationPanelProps {
   origin: LocationState;
@@ -32,8 +32,6 @@ export function SimulationPanel({
     }
   };
 
-  const townOptions = Object.keys(TERMINAL_COORDINATES) as Exclude<TerminalName, "Custom PIN">[];
-
   return (
     <section className="lg:col-span-3 space-y-6">
       <Card className="p-5 shadow-sm">
@@ -55,7 +53,7 @@ export function SimulationPanel({
               onChange={(e) => handleSelectionChange(e.target.value, "origin")}
               className="w-full"
             >
-              {townOptions.map(town => (
+              {UI_TOWNS.map(town => (
                 <NativeSelectOption key={town} value={town}>{town}</NativeSelectOption>
               ))}
               {origin.name === "Custom PIN" && (
@@ -76,7 +74,7 @@ export function SimulationPanel({
               onChange={(e) => handleSelectionChange(e.target.value, "destination")}
               className="w-full"
             >
-               {townOptions.map(town => (
+               {UI_TOWNS.map(town => (
                 <NativeSelectOption key={town} value={town}>{town}</NativeSelectOption>
               ))}
               {destination.name === "Custom PIN" && (
