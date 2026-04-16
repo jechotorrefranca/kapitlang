@@ -13,13 +13,17 @@ interface SimulationPanelProps {
   destination: LocationState;
   onOriginUpdate: (lat: number, lng: number) => void;
   onDestinationUpdate: (lat: number, lng: number) => void;
+  onRunSimulation: () => void;
+  isSimulating: boolean;
 }
 
 export function SimulationPanel({ 
   origin, 
   destination, 
   onOriginUpdate,
-  onDestinationUpdate
+  onDestinationUpdate,
+  onRunSimulation,
+  isSimulating
 }: SimulationPanelProps) {
   const [vehicle, setVehicle] = useState<"jeep" | "uv">("jeep");
 
@@ -150,8 +154,19 @@ export function SimulationPanel({
               </NativeSelect>
             </div>
           </div>
-          <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-10 tracking-wide mt-2">
-            RUN SIMULATION
+          <Button 
+            onClick={onRunSimulation}
+            disabled={isSimulating}
+            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-10 tracking-wide mt-2"
+          >
+            {isSimulating ? (
+              <span className="flex items-center gap-2">
+                <div className="size-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                RUNNING...
+              </span>
+            ) : (
+              "RUN SIMULATION"
+            )}
           </Button>
         </div>
       </Card>

@@ -10,12 +10,15 @@ import { useState } from "react";
 export default function Home() {
   const [origin, setOrigin] = useState<LocationState>(DEFAULT_ORIGIN);
   const [destination, setDestination] = useState<LocationState>(DEFAULT_DESTINATION);
+  const [simulationStatus, setSimulationStatus] = useState<"idle" | "simulating" | "completed">("idle");
 
   const handleOriginUpdate = (lat: number, lng: number) => {
     setOrigin({
       name: getPresetName(lat, lng),
       coords: { lat, lng }
     });
+    // Reset simulation if location changes
+    if (simulationStatus === "completed") setSimulationStatus("idle");
   };
 
   const handleDestinationUpdate = (lat: number, lng: number) => {
@@ -23,6 +26,16 @@ export default function Home() {
       name: getPresetName(lat, lng),
       coords: { lat, lng }
     });
+    // Reset simulation if destination changes
+    if (simulationStatus === "completed") setSimulationStatus("idle");
+  };
+
+  const handleRunSimulation = () => {
+    setSimulationStatus("simulating");
+    // Mock simulation duration (e.g., 2.5 seconds)
+    setTimeout(() => {
+      setSimulationStatus("completed");
+    }, 2500);
   };
 
   return (
@@ -32,6 +45,8 @@ export default function Home() {
         destination={destination} 
         onOriginUpdate={handleOriginUpdate} 
         onDestinationUpdate={handleDestinationUpdate} 
+        onRunSimulation={handleRunSimulation}
+        isSimulating={simulationStatus === "simulating"}
       />
       <MapDisplay 
         origin={origin} 
@@ -40,7 +55,7 @@ export default function Home() {
         onDestinationUpdate={handleDestinationUpdate}
       />
       <section className="lg:col-span-4 space-y-6">
-        <ForecastResults />
+        <ForecastResults status={simulationStatus} />
         <FleetPerformance />
       </section>
     </div>

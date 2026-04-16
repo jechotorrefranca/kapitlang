@@ -60,7 +60,7 @@ export function MapDisplay({ origin, destination, onOriginUpdate, onDestinationU
         />
 
         {/* Floating Controls */}
-        <div className="absolute top-4 right-4 z-[1000] flex flex-col gap-2">
+        <div className="absolute top-4 right-4 z-1000 flex flex-col gap-2">
           <Button 
             size="sm" 
             variant={pinMode === "origin" ? "default" : "secondary"}
@@ -90,7 +90,7 @@ export function MapDisplay({ origin, destination, onOriginUpdate, onDestinationU
         </div>
 
         {/* Status indicator */}
-        <div className="absolute top-4 left-4 z-[1000] bg-background/80 backdrop-blur border px-2.5 py-1.5 rounded-md shadow-xs flex items-center gap-3">
+        <div className="absolute top-4 left-4 z-1000 bg-background/80 backdrop-blur border px-2.5 py-1.5 rounded-md shadow-xs flex items-center gap-3">
           <div className="flex flex-col">
             <span className="text-[7px] font-bold text-muted-foreground uppercase leading-none mb-1">
               Status
