@@ -6,8 +6,21 @@ import { Input } from "@/components/ui/input";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Bus, Car, CloudSun, Lightbulb, Zap } from "lucide-react";
 import { useState } from "react";
+import { TerminalName } from "@/lib/constants";
 
-export function SimulationPanel() {
+interface SimulationPanelProps {
+  origin: TerminalName;
+  destination: TerminalName;
+  onOriginChange: (value: TerminalName) => void;
+  onDestinationChange: (value: TerminalName) => void;
+}
+
+export function SimulationPanel({ 
+  origin, 
+  destination, 
+  onOriginChange, 
+  onDestinationChange 
+}: SimulationPanelProps) {
   const [vehicle, setVehicle] = useState<"jeep" | "uv">("jeep");
 
   return (
@@ -25,7 +38,12 @@ export function SimulationPanel() {
             >
               Origin
             </label>
-            <NativeSelect id="origin-terminal" defaultValue="Bocaue" className="w-full">
+            <NativeSelect 
+              id="origin-terminal" 
+              value={origin} 
+              onChange={(e) => onOriginChange(e.target.value as TerminalName)}
+              className="w-full"
+            >
               <NativeSelectOption value="Bocaue">Bocaue Central</NativeSelectOption>
               <NativeSelectOption value="Marilao">Marilao North</NativeSelectOption>
             </NativeSelect>
@@ -37,7 +55,12 @@ export function SimulationPanel() {
             >
               Destination
             </label>
-            <NativeSelect id="destination-terminal" defaultValue="Meycauayan" className="w-full">
+            <NativeSelect 
+              id="destination-terminal" 
+              value={destination} 
+              onChange={(e) => onDestinationChange(e.target.value as TerminalName)}
+              className="w-full"
+            >
               <NativeSelectOption value="Meycauayan">Meycauayan NLT</NativeSelectOption>
               <NativeSelectOption value="Manila">Manila Gateway</NativeSelectOption>
             </NativeSelect>
