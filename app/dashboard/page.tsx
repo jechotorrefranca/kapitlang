@@ -1,9 +1,9 @@
 "use client";
-import { FleetPerformance } from "@/components/dashboard/FleetPerformance";
+import { SimulationLoader } from "@/components/3D/SimulationLoader";
+import { RecentRoutes } from "@/components/dashboard/RecentRoutes";
 import { ForecastResults } from "@/components/dashboard/ForecastResults";
 import { MapDisplay } from "@/components/dashboard/MapDisplay";
 import { SimulationPanel } from "@/components/dashboard/SimulationPanel";
-import { SimulationLoader } from "@/components/3D/SimulationLoader";
 import { DEFAULT_DESTINATION, DEFAULT_ORIGIN, getPresetName, LocationState } from "@/lib/constants";
 import { SimulationResult } from "@/lib/types";
 import { useState } from "react";
@@ -74,27 +74,26 @@ export default function DashboardPage() {
   };
   return (
     <div className="max-w-7xl mx-auto p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
-      <SimulationPanel 
-        origin={origin} 
-        destination={destination} 
-        onOriginUpdate={handleOriginUpdate} 
+      <SimulationPanel
+        origin={origin}
+        destination={destination}
+        onOriginUpdate={handleOriginUpdate}
         onDestinationUpdate={handleDestinationUpdate}
         onSwap={handleSwap}
         onRunSimulation={handleRunSimulation}
         isSimulating={simulationStatus === "simulating"}
       />
-      <MapDisplay 
-        origin={origin} 
+      <MapDisplay
+        origin={origin}
         destination={destination}
         onOriginUpdate={handleOriginUpdate}
         onDestinationUpdate={handleDestinationUpdate}
       />
       <section className="lg:col-span-4 space-y-6">
         <ForecastResults status={simulationStatus} result={simulationResult} />
-        <FleetPerformance />
+        <RecentRoutes />
       </section>
-      
-      {/* Preload 3D Assets and Canvas */}
+
       <div className="fixed opacity-0 pointer-events-none -z-50 size-0 overflow-hidden">
         <SimulationLoader />
       </div>

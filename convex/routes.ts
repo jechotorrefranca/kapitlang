@@ -51,6 +51,12 @@ export const getAllSimulationLogs = query({
     return await ctx.db.query("simulationLogs").order("desc").collect();
   },
 });
+export const getRecentSimulationLogs = query({
+  args: { limit: v.number() },
+  handler: async (ctx, args) => {
+    return await ctx.db.query("simulationLogs").order("desc").take(args.limit);
+  },
+});
 export const getPaginatedSimulationLogs = query({
   args: { 
     paginationOpts: paginationOptsValidator,
