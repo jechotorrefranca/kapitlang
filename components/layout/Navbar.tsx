@@ -2,6 +2,7 @@
 
 import { Bus, LayoutDashboard, Settings } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 export function Navbar() {
@@ -17,16 +18,25 @@ export function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-white">
       <div className="container flex h-16 items-center justify-between px-6 max-w-7xl mx-auto">
         <div className="flex items-center gap-6">
-          <Link href="/" className="text-xl font-bold tracking-tight text-emerald-600 dark:text-emerald-500 uppercase">
-            KAPIT LANG
+          <Link href="/" className="flex items-center gap-3 group">
+            <Image 
+              src="/kapitlang_logo.png" 
+              alt="Kapit Lang Logo" 
+              width={32} 
+              height={32} 
+              className="object-contain transition-transform group-hover:scale-110"
+            />
+            <span className="text-xl font-bold tracking-tight text-emerald-600 dark:text-emerald-500 uppercase">
+              KAPIT LANG
+            </span>
           </Link>
         </div>
         <div className="flex items-center gap-4">
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
-            <Link href="/" className={getLinkClassName("/")}>
+            <Link href="/dashboard" className={getLinkClassName("/dashboard")}>
               <LayoutDashboard className="size-4" />
               Dashboard
             </Link>

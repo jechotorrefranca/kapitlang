@@ -30,7 +30,7 @@ export default function RootLayout({
         <ConvexClientProvider>
           <div className="flex flex-col min-h-screen bg-muted/40 dark:bg-zinc-950">
             <Navbar />
-            <main className="grow p-6 lg:p-8">
+            <main className="grow">
               {children}
             </main>
             <Footer />

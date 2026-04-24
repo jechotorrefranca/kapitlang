@@ -1,31 +1,18 @@
-// lib/types.ts
+export interface VehicleFactors {
+  base_travel_min:    number | null;
+  avg_wait_min:       number | null;
+  avg_stop_delay_min: number | null;
+  weather_factor:     number;
+  speed_kph:          number | null;
+  capacity:           number | null;
+}
 
-export type VehicleType = "jeepney" | "uv";
-export type WeatherType = "sunny" | "rain";
-
-export type SimulationInput = {
-    origin: string;
-    destination: string;
-    vehicle: VehicleType;
-    time: string; // 24-hour time
-    weather: WeatherType;
-};
-
-export type SimulationResult = {
-    min: number;
-    max: number;
-    avg: number;
-};
-
-export type Route = {
-    origin: string;
-    destination: string;
-    distance_km: number;
-};
-
-export type VehicleConfig = {
-    type: VehicleType;
-    capacity: number;
-    stopDelayMin: number;
-    stopDelayMax: number;
-};
+export interface SimulationResult {
+  min: number;
+  max: number;
+  avg: number;
+  distance_km: number;
+  vehicle: "jeepney" | "uv";
+  weather: "clear" | "rain";
+  factors: VehicleFactors;
+}

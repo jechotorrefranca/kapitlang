@@ -1,6 +1,6 @@
 export default function SettingsPage() {
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto p-6 lg:p-8">
       <h1 className="text-2xl font-bold tracking-tight mb-4">Settings</h1>
       <p className="text-muted-foreground">This is a placeholder for the Settings page.</p>
     </div>

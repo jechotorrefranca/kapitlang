@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Info, PlayCircle, Sparkles, Bus, Car } from "lucide-react";
 import { SimulationLoader } from "../3D/SimulationLoader";
-import { SimulationResult } from "@/app/page";
+import { SimulationResult } from "@/lib/types";
 
 interface ForecastResultsProps {
   status: "idle" | "simulating" | "completed";

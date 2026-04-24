@@ -11,7 +11,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "oxlint . -c .oxlintrc.json",
-    "lint:fix": "oxlint . -c .oxlintrc.json --fix",
+    "lint:fix": "npm run type-check && oxlint . -c .oxlintrc.json --fix",
     "lint:eslint": "eslint . --ignore-pattern \"convex/_generated/**\"",
     "type-check": "tsc --noEmit",
     "prepare": "husky"
