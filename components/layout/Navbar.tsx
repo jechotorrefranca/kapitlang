@@ -5,14 +5,28 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 export function Navbar() {
   const pathname = usePathname();
   
+  // Database query for experimental status
+  const experimentalSetting = useQuery(api.routes.getSystemSetting, { key: "experimental_enabled" });
+  
   // Local state to track experimental status for immediate UI updates
-  const [isExp, setIsExp] = useState(false);
+  const [isExp, setIsExp] = useState<boolean | null>(null);
 
-  // Function to sync with localStorage
+  // Sync local state when DB query result changes
+  useEffect(() => {
+    if (experimentalSetting?.value !== undefined) {
+      setIsExp(experimentalSetting.value);
+      // Keep localStorage in sync for consistency with other components
+      localStorage.setItem("experimental_enabled", experimentalSetting.value.toString());
+    }
+  }, [experimentalSetting]);
+
+  // Function to sync with localStorage (fallback/immediate)
   const syncExp = () => {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("experimental_enabled") === "true";
@@ -21,7 +35,8 @@ export function Navbar() {
   };
 
   useEffect(() => {
-    syncExp(); // Initial check
+    // Initial check from localStorage for fast hydration
+    syncExp();
     
     // Listen for custom event from settings page
     window.addEventListener("experimental-changed", syncExp);
