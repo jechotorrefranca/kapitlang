@@ -22,17 +22,19 @@ export function Footer() {
   return (
     <footer className="border-t py-5 bg-background">
       <div className="container px-6 max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <Image
             src="/kapitlang_logo.png"
             alt="Kapit Lang Logo"
-            width={60}
-            height={18}
-            className="opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all object-contain"
-            style={{ height: "auto" }}
+            width={24}
+            height={24}
+            className="opacity-60 grayscale hover:grayscale-0 hover:opacity-100 transition-all object-contain"
           />
-          <p className="text-[10px] font-bold text-muted-foreground/60 tracking-[0.2em] uppercase border-l pl-4 border-border">
-            Powered by Convex | Kapit Lang v1.0
+          <span className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-600">
+            Kapit Lang
+          </span>
+          <p className="text-[10px] font-bold text-muted-foreground/40 tracking-[0.2em] uppercase border-l pl-3 border-border">
+            v1.0
           </p>
         </div>
         <div className="flex gap-8 text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
@@ -78,15 +80,65 @@ export function Footer() {
               </div>
               <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-dashed text-center">
                 <p className="text-[10px] font-bold text-slate-500 uppercase leading-relaxed">
-                  Every donation, no matter how small, makes a huge difference. <br />
                   Kumakapit lang kami kaya magbigay na kayo 🚌💨
                 </p>
               </div>
             </DialogContent>
           </Dialog>
-          <Link href="#" className="hover:text-emerald-600 transition-colors">
-            Members
-          </Link>
+          <Dialog>
+            <DialogTrigger asChild>
+              <button className="hover:text-emerald-600 transition-colors cursor-pointer outline-none">
+                About
+              </button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-3xl p-15">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-3">
+                  <Image src="/kapitlang_logo.png" alt="Logo" width={32} height={32} className="object-contain" />
+                  <span className="text-xl font-black tracking-tighter text-slate-900 dark:text-white uppercase">
+                    KAPIT <span className="text-emerald-600">LANG</span>
+                  </span>
+                </DialogTitle>
+                <DialogDescription className="text-sm font-medium leading-relaxed pt-4">
+                  Addressing the daily travel unpredictability for Bulacan commuters.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-8 py-4">
+                <div className="space-y-2">
+                  <h3 className="text-xs font-black uppercase tracking-widest text-emerald-600">Project Overview</h3>
+                  <p className="text-xs leading-relaxed text-slate-600 dark:text-slate-400 font-medium">
+                    Kapit Lang is a stochastic simulation application that provides realistic, probability-based commute estimates by modeling terminal dynamics and en-route delays along MacArthur Highway.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-8">
+                  <div className="space-y-3">
+                    <h3 className="text-xs font-black uppercase tracking-widest text-emerald-600">Tech Stack</h3>
+                    <ul className="text-[10px] font-bold space-y-1.5 uppercase text-slate-500">
+                      <li>• Next.js / React</li>
+                      <li>• Convex (Database & Logic)</li>
+                      <li>• Python (FastAPI Engine)</li>
+                      <li>• React Three Fiber (3D)</li>
+                      <li>• Tailwind CSS & Shadcn UI</li>
+                    </ul>
+                  </div>
+                  <div className="space-y-3">
+                    <h3 className="text-xs font-black uppercase tracking-widest text-emerald-600">The Team</h3>
+                    <ul className="text-[10px] font-bold space-y-1.5 uppercase text-slate-900 dark:text-slate-100">
+                      <li>• Jecho P. Torrefranca</li>
+                      <li>• Jocas Arabella S. Cruz</li>
+                      <li>• Eleazar James S. Galope</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <div className="border-t pt-4 text-center">
+                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+                  Developed by the KapitLang Team
+                </p>
+              </div>
+            </DialogContent>
+          </Dialog>
           <Link
             href="#"
             className="hover:text-emerald-600 transition-colors border-l pl-8 border-border"
