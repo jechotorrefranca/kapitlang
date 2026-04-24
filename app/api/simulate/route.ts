@@ -50,7 +50,8 @@ export async function POST(req: Request) {
   const iterations = iterationsSetting?.value ?? 500;
 
   // ── 4. Run Monte Carlo simulation ─────────────────────────────────────────
-  const simRes = await fetch("http://localhost:8000/simulate", {
+  const pythonUrl = process.env.PYTHON_API_URL || "http://localhost:8000";
+  const simRes = await fetch(`${pythonUrl}/simulate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
