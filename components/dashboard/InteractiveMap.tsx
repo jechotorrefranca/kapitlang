@@ -79,7 +79,7 @@ function CoordDebug() {
   );
 }
 
-import { buildRouteWaypoints } from "@/lib/routing";
+import { buildRouteWaypoints, Coord } from "@/lib/routing";
 
 function buildWaypoints(
   originName: string,
