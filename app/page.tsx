@@ -4,9 +4,8 @@ import Link from "next/link";
 
 export default function LandingPage() {
   return (
-    <div className="flex flex-col min-h-[calc(100vh-8rem)] p-6 lg:p-12">
-      {/* Hero Section */}
-      <section className="relative py-20 lg:py-32 overflow-hidden bg-slate-950 rounded-3xl border border-white/5">
+    <div className="flex flex-col min-h-[calc(100vh-8rem)] p-6 lg:p-8 max-w-7xl mx-auto w-full">
+      <section className="relative py-20 lg:py-32 overflow-hidden bg-slate-950 rounded-3xl border border-white/5 px-8">
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-transparent pointer-events-none" />
         <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-[600px] h-[600px] bg-emerald-500/5 blur-[120px] rounded-full pointer-events-none" />
         
@@ -25,7 +24,7 @@ export default function LandingPage() {
                   height={120} 
                   className="object-contain"
                 />
-                <h1 className="text-6xl lg:text-8xl font-black tracking-tighter text-white leading-none">
+                <h1 className="text-4xl lg:text-6xl font-black tracking-tighter text-white leading-none">
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400 uppercase">Kapit Lang</span>
                 </h1>
               </div>
@@ -55,7 +54,7 @@ export default function LandingPage() {
             <div className="flex-1 relative animate-in fade-in zoom-in duration-1000 delay-500">
               <div className="relative z-10 rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-emerald-500/5">
                 <Image 
-                  src="/hero.png" 
+                  src="/hero.jpg" 
                   alt="Kapit Lang Simulation Preview" 
                   width={800} 
                   height={600}
@@ -64,8 +63,7 @@ export default function LandingPage() {
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
               </div>
               
-              {/* Floating Stat Card */}
-              <div className="absolute -bottom-6 -left-6 bg-slate-900/90 backdrop-blur-xl border border-white/10 p-6 rounded-2xl shadow-xl animate-bounce duration-[4000ms]">
+              <div className="z-100 absolute -bottom-6 -left-6 bg-slate-900/90 backdrop-blur-xl border border-white/10 p-6 rounded-2xl shadow-xl animate-bounce duration-[4000ms]">
                 <div className="flex items-center gap-4">
                   <div className="size-12 rounded-xl bg-emerald-500/20 flex items-center justify-center">
                     <BarChart3 className="text-emerald-400" />
@@ -81,7 +79,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Features Section */}
       <section className="py-24 space-y-16">
         <div className="text-center space-y-4 max-w-3xl mx-auto">
           <h2 className="text-3xl lg:text-4xl font-bold text-white tracking-tight">Built for the Real-World Commute</h2>
@@ -157,7 +154,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Simple Footer/SEO */}
       <footer className="py-12 border-t border-white/5 text-center space-y-4">
         <div className="text-slate-500 text-sm font-medium uppercase tracking-widest">
           Kapit Lang • Bulacan Transit Analytics
