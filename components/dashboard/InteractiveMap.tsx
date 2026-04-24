@@ -1,6 +1,6 @@
 "use client";
 
-import { Coordinate, HIGHWAY_SEQUENCE, LocationState, TERMINAL_COORDINATES } from "@/lib/constants";
+import { HIGHWAY_SEQUENCE, LocationState, ROUTE_HINTS, TERMINAL_COORDINATES, TerminalName } from "@/lib/constants";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useEffect, useMemo, useState } from "react";
@@ -23,88 +23,165 @@ interface InteractiveMapProps {
   onPinComplete: () => void;
   shouldLocate: boolean;
   onLocateComplete: (lat: number, lng: number) => void;
+  onZoomReady?: (zoomIn: () => void, zoomOut: () => void) => void;
 }
 
-function MapController({ 
-  pinMode, 
-  onOriginUpdate, 
-  onDestinationUpdate, 
+// ─── Map Controller ───────────────────────────────────────────────────────────
+function MapController({
+  pinMode,
+  onOriginUpdate,
+  onDestinationUpdate,
   onPinComplete,
   shouldLocate,
-  onLocateComplete
+  onLocateComplete,
+  onZoomReady,
 }: InteractiveMapProps) {
   const map = useMap();
 
   useEffect(() => {
-    if (shouldLocate) {
-      map.locate({ setView: true, maxZoom: 16 });
-    }
+    if (shouldLocate) map.locate({ setView: true, maxZoom: 16 });
   }, [shouldLocate, map]);
+
+  useEffect(() => {
+    onZoomReady?.(() => map.zoomIn(), () => map.zoomOut());
+  }, [map, onZoomReady]);
 
   useMapEvents({
     click(e) {
-      if (pinMode === "origin") {
-        onOriginUpdate(e.latlng.lat, e.latlng.lng);
-        onPinComplete();
-      } else if (pinMode === "destination") {
-        onDestinationUpdate(e.latlng.lat, e.latlng.lng);
-        onPinComplete();
-      }
+      if (pinMode === "origin") { onOriginUpdate(e.latlng.lat, e.latlng.lng); onPinComplete(); }
+      else if (pinMode === "destination") { onDestinationUpdate(e.latlng.lat, e.latlng.lng); onPinComplete(); }
     },
-    locationfound(e) {
-      onLocateComplete(e.latlng.lat, e.latlng.lng);
-    },
+    locationfound(e) { onLocateComplete(e.latlng.lat, e.latlng.lng); },
   });
-
   return null;
 }
 
+// ─── Coordinate debug overlay ─────────────────────────────────────────────────
+function CoordDebug() {
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  useMapEvents({
+    mousemove(e) { setCoords({ lat: e.latlng.lat, lng: e.latlng.lng }); },
+    mouseout()   { setCoords(null); },
+  });
+  if (!coords) return null;
+  return (
+    <div style={{
+      position: "absolute", bottom: 32, right: 12, zIndex: 1000,
+      pointerEvents: "none", background: "rgba(0,0,0,0.65)",
+      backdropFilter: "blur(4px)", color: "#6ee7b7",
+      fontFamily: "monospace", fontSize: 11, fontWeight: 700,
+      padding: "4px 10px", borderRadius: 6,
+      letterSpacing: "0.04em", border: "1px solid rgba(110,231,183,0.25)",
+      whiteSpace: "nowrap",
+    }}>
+      {coords.lat.toFixed(6)}, {coords.lng.toFixed(6)}
+    </div>
+  );
+}
+
+// ─── Waypoint builder ─────────────────────────────────────────────────────────
+//
+// Builds the ordered list of [lng,lat] strings to send to OSRM.
+//
+// For named terminal pairs (no Dropped Pin):
+//   origin → [hints-for-seg-0] → terminal-1 → [hints-for-seg-1] → terminal-2 → … → destination
+//
+// Hints for each pair are looked up from ROUTE_HINTS:
+//   forward key "A|B"   — used as-is   (northbound)
+//   reverse key "B|A"   — reversed      (southbound)
+//
+type Coord = { lat: number; lng: number };
+
+function buildWaypoints(
+  originCoords:  Coord,
+  destCoords:    Coord,
+  startIndex:    number,   // index in HIGHWAY_SEQUENCE, -1 if Dropped Pin
+  endIndex:      number,
+): string[] {
+  const pts: string[] = [`${originCoords.lng},${originCoords.lat}`];
+
+  if (startIndex !== -1 && endIndex !== -1 && startIndex !== endIndex) {
+    const isNorthbound = startIndex < endIndex;
+    const step = isNorthbound ? 1 : -1;
+
+    for (let i = startIndex; isNorthbound ? i < endIndex : i > endIndex; i += step) {
+      const fromName = HIGHWAY_SEQUENCE[i];
+      const toName   = HIGHWAY_SEQUENCE[i + step];
+      if (!fromName || !toName || fromName === "Dropped Pin" || toName === "Dropped Pin") continue;
+
+      // Inject route hints for this pair
+      const fwdKey = `${fromName}|${toName}`;
+      const revKey = `${toName}|${fromName}`;
+      const hintPts: Coord[] = ROUTE_HINTS[fwdKey]
+        ? ROUTE_HINTS[fwdKey]
+        : ROUTE_HINTS[revKey]
+          ? [...ROUTE_HINTS[revKey]].reverse()
+          : [];
+
+      for (const h of hintPts) pts.push(`${h.lng},${h.lat}`);
+
+      // Add the next intermediate terminal (skip if it IS the destination)
+      if (i + step !== endIndex) {
+        const nextTerminal = toName as Exclude<TerminalName, "Dropped Pin">;
+        const c = TERMINAL_COORDINATES[nextTerminal];
+        if (c) pts.push(`${c.lng},${c.lat}`);
+      }
+    }
+  }
+
+  pts.push(`${destCoords.lng},${destCoords.lat}`);
+  return pts;
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
+type LatLng = [number, number];
+
 export default function InteractiveMap(props: InteractiveMapProps) {
   const { origin, destination, onOriginUpdate, onDestinationUpdate } = props;
-  const [routeData, setRouteData] = useState<[number, number][]>([]);
+  const [routeData, setRouteData] = useState<LatLng[]>([]);
 
   useEffect(() => {
+    const startIndex = HIGHWAY_SEQUENCE.indexOf(origin.name);
+    const endIndex   = HIGHWAY_SEQUENCE.indexOf(destination.name);
+
     const fetchRoute = async () => {
       try {
-        const startIndex = HIGHWAY_SEQUENCE.indexOf(origin.name);
-        const endIndex = HIGHWAY_SEQUENCE.indexOf(destination.name);
-        
-        let waypoints: Coordinate[] = [origin.coords];
-        
-        if (startIndex !== -1 && endIndex !== -1) {
-          const isNorthbound = startIndex < endIndex;
-          const step = isNorthbound ? 1 : -1;
-          
-          for (let i = startIndex + step; isNorthbound ? i < endIndex : i > endIndex; i += step) {
-            const town = HIGHWAY_SEQUENCE[i];
-            if (town !== "Custom PIN") {
-              waypoints.push(TERMINAL_COORDINATES[town]);
-            }
-          }
-        }
-        
-        waypoints.push(destination.coords);
-
-        const waypointStr = waypoints
-          .map(wp => `${wp.lng},${wp.lat}`)
-          .join(";");
-
+        const waypointParts = buildWaypoints(
+          origin.coords, destination.coords, startIndex, endIndex
+        );
+        const waypointStr = waypointParts.join(";");
         const url = `https://router.project-osrm.org/route/v1/driving/${waypointStr}?geometries=geojson&overview=full`;
-        const response = await fetch(url);
-        const data = await response.json();
-        
+
+        // Log the URL so you can inspect it in DevTools → Network tab
+        console.log(
+          `[OSRM] ${origin.name} → ${destination.name}`,
+          `\nWaypoints (${waypointParts.length}):`, waypointParts,
+          `\nURL:`, url
+        );
+
+        const res  = await fetch(url);
+        const data = await res.json();
+
         if (data.code === "Ok" && data.routes?.[0]?.geometry?.coordinates) {
-          const coords = data.routes[0].geometry.coordinates.map((coord: [number, number]) => [coord[1], coord[0]]);
-          setRouteData(coords);
+          setRouteData(
+            data.routes[0].geometry.coordinates.map(
+              ([lng, lat]: [number, number]): LatLng => [lat, lng]
+            )
+          );
+        } else {
+          console.warn("[OSRM] Routing failed:", data);
         }
-      } catch (error) {
-        console.error("Error fetching route:", error);
+      } catch (err) {
+        console.error("[OSRM] Fetch error:", err);
       }
     };
 
     fetchRoute();
+  // origin.name and destination.name are string keys — safe to use in dependency
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [origin.coords, destination.coords, origin.name, destination.name]);
 
+  // ─── Icons ──────────────────────────────────────────────────────────────────
   const originIcon = useMemo(() => L.divIcon({
     html: `
       <div class="flex items-center justify-center">
@@ -114,9 +191,7 @@ export default function InteractiveMap(props: InteractiveMapProps) {
         </svg>
       </div>
     `,
-    className: "",
-    iconSize: [36, 36],
-    iconAnchor: [18, 36]
+    className: "", iconSize: [36, 36], iconAnchor: [18, 36],
   }), []);
 
   const destIcon = useMemo(() => L.divIcon({
@@ -128,9 +203,7 @@ export default function InteractiveMap(props: InteractiveMapProps) {
         </svg>
       </div>
     `,
-    className: "",
-    iconSize: [36, 36],
-    iconAnchor: [18, 36]
+    className: "", iconSize: [36, 36], iconAnchor: [18, 36],
   }), []);
 
   return (
@@ -144,59 +217,29 @@ export default function InteractiveMap(props: InteractiveMapProps) {
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
       />
-      
+
       {routeData.length > 0 && (
         <>
-          <Polyline 
-            positions={routeData} 
-            pathOptions={{ 
-              color: "#10b981",
-              weight: 10,
-              opacity: 0.3,
-              lineCap: "round",
-              lineJoin: "round",
-            }} 
-          />
-          <Polyline 
-            positions={routeData} 
-            pathOptions={{ 
-              color: "#059669",
-              weight: 4,
-              opacity: 1,
-              lineCap: "round",
-              lineJoin: "round",
-            }} 
-          />
+          <Polyline positions={routeData} pathOptions={{ color: "#10b981", weight: 10, opacity: 0.3, lineCap: "round", lineJoin: "round" }} />
+          <Polyline positions={routeData} pathOptions={{ color: "#059669", weight: 4, opacity: 1, lineCap: "round", lineJoin: "round" }} />
         </>
       )}
-      
-      <Marker 
-        position={[origin.coords.lat, origin.coords.lng]} 
-        icon={originIcon} 
+
+      <Marker
+        position={[origin.coords.lat, origin.coords.lng]}
+        icon={originIcon}
         draggable={true}
-        eventHandlers={{
-          dragend: (e) => {
-            const marker = e.target;
-            const position = marker.getLatLng();
-            onOriginUpdate(position.lat, position.lng);
-          },
-        }}
+        eventHandlers={{ dragend: (e) => { const p = e.target.getLatLng(); onOriginUpdate(p.lat, p.lng); } }}
       />
-      
-      <Marker 
-        position={[destination.coords.lat, destination.coords.lng]} 
-        icon={destIcon} 
+      <Marker
+        position={[destination.coords.lat, destination.coords.lng]}
+        icon={destIcon}
         draggable={true}
-        eventHandlers={{
-          dragend: (e) => {
-            const marker = e.target;
-            const position = marker.getLatLng();
-            onDestinationUpdate(position.lat, position.lng);
-          },
-        }}
+        eventHandlers={{ dragend: (e) => { const p = e.target.getLatLng(); onDestinationUpdate(p.lat, p.lng); } }}
       />
 
       <MapController {...props} />
+      <CoordDebug />
     </MapContainer>
   );
 }

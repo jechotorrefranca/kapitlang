@@ -7,10 +7,31 @@ import { SimulationPanel } from "@/components/dashboard/SimulationPanel";
 import { DEFAULT_DESTINATION, DEFAULT_ORIGIN, getPresetName, LocationState } from "@/lib/constants";
 import { useState } from "react";
 
+export interface VehicleFactors {
+  base_travel_min:    number | null;
+  avg_wait_min:       number | null;
+  avg_stop_delay_min: number | null;
+  weather_factor:     number;
+  speed_kph:          number | null;
+  capacity:           number | null;
+}
+
+export interface SimulationResult {
+  min: number;
+  max: number;
+  avg: number;
+  distance_km: number;
+  vehicle: "jeepney" | "uv";
+  weather: "clear" | "rain";
+  factors: VehicleFactors;
+}
+
+
 export default function Home() {
   const [origin, setOrigin] = useState<LocationState>(DEFAULT_ORIGIN);
   const [destination, setDestination] = useState<LocationState>(DEFAULT_DESTINATION);
   const [simulationStatus, setSimulationStatus] = useState<"idle" | "simulating" | "completed">("idle");
+  const [simulationResult, setSimulationResult] = useState<SimulationResult | null>(null);
 
   const handleOriginUpdate = (lat: number, lng: number) => {
     setOrigin({
@@ -28,11 +49,42 @@ export default function Home() {
     if (simulationStatus === "completed") setSimulationStatus("idle");
   };
 
-  const handleRunSimulation = () => {
+  const handleSwap = () => {
+    setOrigin(destination);
+    setDestination(origin);
+    if (simulationStatus === "completed") setSimulationStatus("idle");
+  };
+
+  const handleRunSimulation = async (vehicle: string, time: string, weather: string) => {
     setSimulationStatus("simulating");
-    setTimeout(() => {
+    setSimulationResult(null);
+
+    try {
+      const res = await fetch("/api/simulate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          vehicle,
+          weather,
+          time,
+          origin: origin.name,
+          destination: destination.name,
+          originLat: origin.coords.lat,
+          originLng: origin.coords.lng,
+          destLat: destination.coords.lat,
+          destLng: destination.coords.lng,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Simulation failed");
+
+      const data: SimulationResult = await res.json();
+      setSimulationResult(data);
       setSimulationStatus("completed");
-    }, 2500);
+    } catch (err) {
+      console.error(err);
+      setSimulationStatus("idle");
+    }
   };
 
   return (
@@ -41,7 +93,8 @@ export default function Home() {
         origin={origin} 
         destination={destination} 
         onOriginUpdate={handleOriginUpdate} 
-        onDestinationUpdate={handleDestinationUpdate} 
+        onDestinationUpdate={handleDestinationUpdate}
+        onSwap={handleSwap}
         onRunSimulation={handleRunSimulation}
         isSimulating={simulationStatus === "simulating"}
       />
@@ -52,7 +105,7 @@ export default function Home() {
         onDestinationUpdate={handleDestinationUpdate}
       />
       <section className="lg:col-span-4 space-y-6">
-        <ForecastResults status={simulationStatus} />
+        <ForecastResults status={simulationStatus} result={simulationResult} />
         <FleetPerformance />
       </section>
     </div>

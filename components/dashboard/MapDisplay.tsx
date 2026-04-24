@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { LocationState } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-import { Activity, Flag, MapPin, Navigation } from "lucide-react";
+import { Activity, Flag, MapPin, Minus, Navigation, Plus } from "lucide-react";
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 const DynamicInteractiveMap = dynamic(
   () => import("./InteractiveMap"),
@@ -30,6 +30,13 @@ interface MapDisplayProps {
 export function MapDisplay({ origin, destination, onOriginUpdate, onDestinationUpdate }: MapDisplayProps) {
   const [pinMode, setPinMode] = useState<"origin" | "destination" | null>(null);
   const [shouldLocate, setShouldLocate] = useState(false);
+  const zoomInRef = useRef<() => void>(null);
+  const zoomOutRef = useRef<() => void>(null);
+
+  const handleZoomReady = useCallback((zoomIn: () => void, zoomOut: () => void) => {
+    zoomInRef.current = zoomIn;
+    zoomOutRef.current = zoomOut;
+  }, []);
 
   const togglePinMode = (mode: "origin" | "destination") => {
     setPinMode(prev => prev === mode ? null : mode);
@@ -54,8 +61,10 @@ export function MapDisplay({ origin, destination, onOriginUpdate, onDestinationU
           onLocateComplete={(lat, lng) => {
             console.log("User located at:", lat, lng);
           }}
+          onZoomReady={handleZoomReady}
         />
 
+        {/* Pin mode buttons — top right */}
         <div className="absolute top-4 right-4 z-1000 flex flex-col gap-2">
           <Button 
             size="sm" 
@@ -75,14 +84,39 @@ export function MapDisplay({ origin, destination, onOriginUpdate, onDestinationU
             <Flag className="size-3.5" />
             <span className="text-[10px] font-bold uppercase">Set Dest</span>
           </Button>
+        </div>
+
+        {/* GPS + Zoom controls — bottom left */}
+        <div className="absolute bottom-8 left-4 z-1000 flex flex-col gap-2">
           <Button 
             size="icon" 
             variant="secondary"
-            className="size-9 shadow-md mt-2"
+            className="size-9 shadow-md"
             onClick={handleLocateMe}
+            aria-label="Locate me"
           >
             <Navigation className="size-4" />
           </Button>
+          <div className="flex flex-col rounded-md overflow-hidden border shadow-md">
+            <Button
+              size="icon"
+              variant="secondary"
+              className="size-9 rounded-none rounded-t-md border-b"
+              onClick={() => zoomInRef.current?.()}
+              aria-label="Zoom in"
+            >
+              <Plus className="size-4" />
+            </Button>
+            <Button
+              size="icon"
+              variant="secondary"
+              className="size-9 rounded-none rounded-b-md"
+              onClick={() => zoomOutRef.current?.()}
+              aria-label="Zoom out"
+            >
+              <Minus className="size-4" />
+            </Button>
+          </div>
         </div>
 
         <div className="absolute top-4 left-4 z-1000 bg-background/80 backdrop-blur border px-2.5 py-1.5 rounded-md shadow-xs flex items-center gap-3">

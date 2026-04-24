@@ -1,18 +1,23 @@
-export type TerminalName = 
+export type TerminalName =
   | "Valenzuela (Monumento)"
-  | "Meycauayan (Junction)" 
-  | "Marilao (Poblacion)" 
-  | "SM City Marilao" 
-  | "Lolomboy (Bocaue South)" 
-  | "Bocaue (Crossing)" 
-  | "Turo (Bocaue North)" 
-  | "Balagtas (Crossing)" 
-  | "Tabang (Guiguinto)" 
-  | "Tikay (Malolos Entrance)" 
-  | "Malolos (Crossing)" 
-  | "Longos (Malolos North)" 
+  | "Our Lady of Fatima University"
+  | "Malanday"
+  | "Meycauayan (Malhacan)"
+  | "SM City Marilao"
+  | "Marilao (Crossing)"
+  | "Bocaue (Joners)"
+  | "Bocaue (Crossing)"
+  | "Balagtas (Intercity)"
+  | "Balagtas (Palengke)"
+  | "Guiguinto (Krus)"
+  | "Guiguinto-Malolos Arch"
+  | "Malolos (Tikay)"
+  | "Malolos (Robinsons)"
+  | "Malolos (Crossing)"
+  | "Bulacan State University"
+  | "Centro Escolar University"
   | "Calumpit (Bridge)"
-  | "Custom PIN";
+  | "Dropped Pin";
 
 export interface Coordinate {
   lat: number;
@@ -24,38 +29,47 @@ export interface LocationState {
   coords: Coordinate;
 }
 
-// Hyper-precise MacArthur Highway anchor points
-export const TERMINAL_COORDINATES: Record<Exclude<TerminalName, "Custom PIN">, Coordinate> = {
-  "Valenzuela (Monumento)": { lat: 14.6573, lng: 120.9841 },
-  "Meycauayan (Junction)": { lat: 14.7369, lng: 120.9608 },
-  "Marilao (Poblacion)": { lat: 14.7450, lng: 120.9580 },
-  "SM City Marilao": { lat: 14.7541, lng: 120.9561 },
-  "Lolomboy (Bocaue South)": { lat: 14.7796, lng: 120.9332 },
-  "Bocaue (Crossing)": { lat: 14.8056, lng: 120.9357 },
-  "Turo (Bocaue North)": { lat: 14.8180, lng: 120.9375 },
-  "Balagtas (Crossing)": { lat: 14.8227, lng: 120.9130 },
-  "Tabang (Guiguinto)": { lat: 14.8385, lng: 120.8753 },
-  "Tikay (Malolos Entrance)": { lat: 14.8423, lng: 120.8532 },
-  "Malolos (Crossing)": { lat: 14.8515321, lng: 120.8159491 },
-  "Longos (Malolos North)": { lat: 14.8710, lng: 120.7950 },
-  "Calumpit (Bridge)": { lat: 14.9142801, lng: 120.7634356 },
+export const TERMINAL_COORDINATES: Record<Exclude<TerminalName, "Dropped Pin">, Coordinate> = {
+  "Valenzuela (Monumento)": { lat: 14.6576030, lng: 120.9840524 },
+  "Our Lady of Fatima University": { lat: 14.6806000, lng: 120.9791000 },
+  "Malanday": { lat: 14.7179000, lng: 120.9572000 },
+  "Meycauayan (Malhacan)": { lat: 14.7376000, lng: 120.9608000 },
+  "SM City Marilao": { lat: 14.7543000, lng: 120.9542000 },
+  "Marilao (Crossing)": { lat: 14.7626718, lng: 120.9474775 },
+  "Bocaue (Joners)": { lat: 14.7805467, lng: 120.9357406 },
+  "Bocaue (Crossing)": { lat: 14.7975000, lng: 120.9291000 },
+  "Balagtas (Intercity)": { lat: 14.8056000, lng: 120.9193000 },
+  "Balagtas (Palengke)": { lat: 14.8207519, lng: 120.9033817 },
+  "Guiguinto (Krus)": { lat: 14.8284000, lng: 120.8844000 },
+  "Guiguinto-Malolos Arch": { lat: 14.8392131, lng: 120.8595336 },
+  "Malolos (Tikay)": { lat: 14.8425629, lng: 120.8445668 },
+  "Malolos (Robinsons)": { lat: 14.8492727, lng: 120.8241607 },
+  "Malolos (Crossing)": { lat: 14.8527157, lng: 120.8159423 },
+  "Bulacan State University": { lat: 14.8563764, lng: 120.8127236 },
+  "Centro Escolar University": { lat: 14.8702000, lng: 120.8004000 },
+  "Calumpit (Bridge)": { lat: 14.9189000, lng: 120.7658000 },
 };
 
 // Source of Truth for the MacArthur Highway sequence (South to North)
 export const HIGHWAY_SEQUENCE: TerminalName[] = [
   "Valenzuela (Monumento)",
-  "Meycauayan (Junction)",
-  "Marilao (Poblacion)",
+  "Our Lady of Fatima University",
+  "Malanday",
+  "Meycauayan (Malhacan)",
   "SM City Marilao",
-  "Lolomboy (Bocaue South)",
+  "Marilao (Crossing)",
+  "Bocaue (Joners)",
   "Bocaue (Crossing)",
-  "Turo (Bocaue North)",
-  "Balagtas (Crossing)",
-  "Tabang (Guiguinto)",
-  "Tikay (Malolos Entrance)",
+  "Balagtas (Intercity)",
+  "Balagtas (Palengke)",
+  "Guiguinto (Krus)",
+  "Guiguinto-Malolos Arch",
+  "Malolos (Tikay)",
+  "Malolos (Robinsons)",
   "Malolos (Crossing)",
-  "Longos (Malolos North)",
-  "Calumpit (Bridge)"
+  "Bulacan State University",
+  "Centro Escolar University",
+  "Calumpit (Bridge)",
 ];
 
 // All landmarks are visible in the refined route model
@@ -67,8 +81,8 @@ export const DEFAULT_ORIGIN: LocationState = {
 };
 
 export const DEFAULT_DESTINATION: LocationState = {
-  name: "Meycauayan (Junction)",
-  coords: TERMINAL_COORDINATES["Meycauayan (Junction)"],
+  name: "SM City Marilao",
+  coords: TERMINAL_COORDINATES["SM City Marilao"],
 };
 
 // Helper to find preset name for coords
@@ -76,5 +90,29 @@ export const getPresetName = (lat: number, lng: number): TerminalName => {
   const match = Object.entries(TERMINAL_COORDINATES).find(([_, coords]) => {
     return Math.abs(coords.lat - lat) < 0.0001 && Math.abs(coords.lng - lng) < 0.0001;
   });
-  return match ? (match[0] as TerminalName) : "Custom PIN";
+  return match ? (match[0] as TerminalName) : "Dropped Pin";
 };
+
+export const ROUTE_HINTS: Record<string, Coordinate[]> = {
+  "SM City Marilao|Marilao (Crossing)": [
+    { lat: 14.7599000, lng: 120.9505000 },
+  ],
+  "Marilao (Crossing)|Bocaue (Joners)": [
+    { lat: 14.7682015, lng: 120.9422850 },
+    { lat: 14.7745505, lng: 120.9390448 },
+  ],
+  "Guiguinto (Krus)|Guiguinto-Malolos Arch": [
+    { lat: 14.8371181, lng: 120.8629990 },
+    { lat: 14.8398146, lng: 120.8622694 },
+    { lat: 14.8388605, lng: 120.8630097 },
+    { lat: 14.8389331, lng: 120.8612287 },
+    { lat: 14.8391404, lng: 120.8599520 },
+  ],
+  "Guiguinto-Malolos Arch|Guiguinto (Krus)": [
+    { lat: 14.8390440, lng: 120.8602157 },
+    { lat: 14.8387744, lng: 120.8612515 },
+    { lat: 14.8378876, lng: 120.8616433 },
+    { lat: 14.8370528, lng: 120.8630387 },
+  ],
+};
+
