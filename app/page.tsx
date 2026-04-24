@@ -65,8 +65,8 @@ export default function LandingPage() {
       </section>
       <section className="py-24 space-y-16">
         <div className="text-center space-y-4 max-w-3xl mx-auto">
-          <h2 className="text-3xl lg:text-4xl font-bold text-white tracking-tight">Built for the Real-World Commute</h2>
-          <p className="text-slate-400 text-lg">
+          <h2 className="text-3xl lg:text-4xl font-bold text-slate-950 dark:text-white tracking-tight">Built for the Real-World Commute</h2>
+          <p className="text-slate-600 dark:text-slate-400 text-lg">
             Standard navigation apps fail in Bulacan because they ignore the unique "terminal culture" of local PUVs. We don't.
           </p>
         </div>
