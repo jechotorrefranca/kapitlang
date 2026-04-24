@@ -8,7 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { api } from "@/convex/_generated/api";
 import { VehicleConfig, WeatherModifier } from "@/lib/types";
 import { useMutation, useQuery } from "convex/react";
-import { CloudRain, Gauge, Save, Settings2, ShieldCheck, Truck, Zap } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { CloudRain, FlaskConical, Gauge, Save, Settings2, ShieldCheck, Truck, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -18,6 +19,8 @@ export default function SettingsPage() {
   const peakHoursSetting = useQuery(api.routes.getSystemSetting, { key: "peak_hours" });
   const dbVehicleConfigs = useQuery(api.routes.getAllVehicleConfigs);
   const dbWeatherModifiers = useQuery(api.routes.getAllWeatherModifiers);
+
+  const experimentalSetting = useQuery(api.routes.getSystemSetting, { key: "experimental_enabled" });
 
   // Database Mutations
   const upsertSetting = useMutation(api.routes.upsertSystemSetting);
@@ -32,6 +35,7 @@ export default function SettingsPage() {
     pm_start: 17,
     pm_end: 20,
   });
+  const [experimentalEnabled, setExperimentalEnabled] = useState(false);
   const [vehicles, setVehicles] = useState<VehicleConfig[]>([]);
   const [weather, setWeather] = useState<WeatherModifier[]>([]);
 
@@ -39,9 +43,10 @@ export default function SettingsPage() {
   useEffect(() => {
     if (systemSettings?.value) setIterations(systemSettings.value);
     if (peakHoursSetting?.value) setPeakHours(peakHoursSetting.value);
+    if (experimentalSetting?.value !== undefined) setExperimentalEnabled(experimentalSetting.value);
     if (dbVehicleConfigs) setVehicles(dbVehicleConfigs as unknown as VehicleConfig[]);
     if (dbWeatherModifiers) setWeather(dbWeatherModifiers as unknown as WeatherModifier[]);
-  }, [systemSettings, peakHoursSetting, dbVehicleConfigs, dbWeatherModifiers]);
+  }, [systemSettings, peakHoursSetting, experimentalSetting, dbVehicleConfigs, dbWeatherModifiers]);
 
   const handleSaveAll = async () => {
     const loadingToast = toast.loading("Saving all changes...");
@@ -237,6 +242,37 @@ export default function SettingsPage() {
           </div>
         </TabsContent>
       </Tabs>
+
+      <Card className="shadow-sm border-purple-200/60 dark:border-purple-800/60 bg-purple-50/5 dark:bg-purple-900/5 mt-8">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <div className="space-y-1">
+            <CardTitle className="text-sm font-black uppercase tracking-tighter flex items-center gap-2">
+              <FlaskConical className="size-4 text-purple-600" />
+              Experimental Lab
+            </CardTitle>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase opacity-60">Unlock pre-alpha features and algorithms.</p>
+          </div>
+          <Switch 
+            checked={experimentalEnabled}
+            onCheckedChange={async (val) => {
+              setExperimentalEnabled(val);
+              await upsertSetting({ key: "experimental_enabled", value: val });
+              if (val) {
+                toast.success("Experimental Lab activated", {
+                  description: "You can now access the Experimental tab in the navbar.",
+                });
+              } else {
+                toast.info("Experimental Lab deactivated");
+              }
+            }}
+          />
+        </CardHeader>
+        <CardContent>
+          <div className="text-[11px] font-medium text-slate-600 dark:text-slate-400">
+            Toggling this will <span className="font-bold text-purple-600 underline">instantly</span> update the navigation bar. Use with caution as these features may be unstable.
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
