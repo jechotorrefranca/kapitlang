@@ -16,3 +16,23 @@ export interface SimulationResult {
   weather: "clear" | "rain";
   factors: VehicleFactors;
 }
+
+export interface VehicleConfig {
+  vehicle: string;
+  capacity: number;
+  base_speed_kph: number;
+  peak_min_wait: number;
+  peak_max_wait: number;
+  offpeak_min_wait: number;
+  offpeak_max_wait: number;
+  min_stops: number;
+  max_stops: number;
+  min_stop_delay: number;
+  max_stop_delay: number;
+}
+
+export interface WeatherModifier {
+  condition: string;
+  speed_factor: number;
+  wait_factor: number;
+}

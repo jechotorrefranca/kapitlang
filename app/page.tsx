@@ -1,4 +1,4 @@
-import { ArrowRight, Bus, Clock, MapPin, Zap } from "lucide-react";
+import { ArrowRight, Bus, MapPin, Zap } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 export default function LandingPage() {
@@ -127,10 +127,6 @@ export default function LandingPage() {
               >
                 Launch Simulator
               </Link>
-              <div className="px-8 py-5 border-2 border-slate-950/20 text-slate-950 font-bold rounded-2xl flex items-center justify-center gap-2">
-                <Clock className="size-5" />
-                Live in Bulacan
-              </div>
             </div>
           </div>
         </div>

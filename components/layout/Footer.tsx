@@ -14,7 +14,7 @@ export function Footer() {
             style={{ height: "auto" }}
           />
           <p className="text-[10px] font-bold text-muted-foreground/60 tracking-[0.2em] uppercase border-l pl-4 border-border">
-            Powered by Convex | Simulation Engine v1.2
+            Powered by Convex | Kapit Lang v1.0
           </p>
         </div>
         <div className="flex gap-8 text-[9px] font-bold text-muted-foreground uppercase tracking-widest">

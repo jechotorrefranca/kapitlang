@@ -1,8 +1,242 @@
+"use client";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { api } from "@/convex/_generated/api";
+import { VehicleConfig, WeatherModifier } from "@/lib/types";
+import { useMutation, useQuery } from "convex/react";
+import { CloudRain, Gauge, Save, Settings2, ShieldCheck, Truck, Zap } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+
 export default function SettingsPage() {
+  // Database Queries
+  const systemSettings = useQuery(api.routes.getSystemSetting, { key: "monte_carlo_tests" });
+  const peakHoursSetting = useQuery(api.routes.getSystemSetting, { key: "peak_hours" });
+  const dbVehicleConfigs = useQuery(api.routes.getAllVehicleConfigs);
+  const dbWeatherModifiers = useQuery(api.routes.getAllWeatherModifiers);
+
+  // Database Mutations
+  const upsertSetting = useMutation(api.routes.upsertSystemSetting);
+  const upsertVehicle = useMutation(api.routes.upsertVehicleConfig);
+  const upsertWeather = useMutation(api.routes.upsertWeatherModifier);
+
+  // unified Local State
+  const [iterations, setIterations] = useState<number>(500);
+  const [peakHours, setPeakHours] = useState({
+    am_start: 6,
+    am_end: 9,
+    pm_start: 17,
+    pm_end: 20,
+  });
+  const [vehicles, setVehicles] = useState<VehicleConfig[]>([]);
+  const [weather, setWeather] = useState<WeatherModifier[]>([]);
+
+  // Sync database values to local state on load
+  useEffect(() => {
+    if (systemSettings?.value) setIterations(systemSettings.value);
+    if (peakHoursSetting?.value) setPeakHours(peakHoursSetting.value);
+    if (dbVehicleConfigs) setVehicles(dbVehicleConfigs as unknown as VehicleConfig[]);
+    if (dbWeatherModifiers) setWeather(dbWeatherModifiers as unknown as WeatherModifier[]);
+  }, [systemSettings, peakHoursSetting, dbVehicleConfigs, dbWeatherModifiers]);
+
+  const handleSaveAll = async () => {
+    const loadingToast = toast.loading("Saving all changes...");
+    try {
+      // 1. Save General Settings
+      await upsertSetting({ key: "monte_carlo_tests", value: iterations });
+      await upsertSetting({ key: "peak_hours", value: peakHours });
+
+      // 2. Save Vehicle Configs
+      for (const v of vehicles) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { _id, _creationTime, ...data } = v as unknown as Record<string, unknown>;
+        await upsertVehicle(data as unknown as VehicleConfig);
+      }
+
+      // 3. Save Weather Modifiers
+      for (const w of weather) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { _id, _creationTime, ...data } = w as unknown as Record<string, unknown>;
+        await upsertWeather(data as unknown as WeatherModifier);
+      }
+
+      toast.dismiss(loadingToast);
+      toast.success("All settings saved and synchronized");
+    } catch {
+      toast.dismiss(loadingToast);
+      toast.error("Failed to save some settings");
+    }
+  };
+
+  const updateVehicle = (index: number, updates: Partial<VehicleConfig>) => {
+    const newVehicles = [...vehicles];
+    newVehicles[index] = { ...newVehicles[index], ...updates };
+    setVehicles(newVehicles);
+  };
+
+  const updateWeather = (index: number, updates: Partial<WeatherModifier>) => {
+    const newWeather = [...weather];
+    newWeather[index] = { ...newWeather[index], ...updates };
+    setWeather(newWeather);
+  };
+
   return (
-    <div className="max-w-7xl mx-auto p-6 lg:p-8">
-      <h1 className="text-2xl font-bold tracking-tight mb-4">Settings</h1>
-      <p className="text-muted-foreground">This is a placeholder for the Settings page.</p>
+    <div className="max-w-5xl mx-auto p-6 lg:p-10 space-y-8 animate-in fade-in duration-700">
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-black tracking-tight uppercase flex items-center gap-3">
+            <Settings2 className="size-8 text-emerald-600" />
+            System Control
+          </h1>
+          <p className="text-sm text-muted-foreground font-medium">
+            Fine-tune the stochastic engine parameters and global transit rules.
+          </p>
+        </div>
+        <Button onClick={handleSaveAll} className="bg-emerald-600 hover:bg-emerald-700 font-bold gap-2 shadow-md shadow-emerald-500/10 px-6">
+          <Save className="size-4" />
+          SAVE CHANGES
+        </Button>
+      </div>
+
+      <Tabs defaultValue="general" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 h-12 bg-slate-100 dark:bg-slate-900 border p-1">
+          <TabsTrigger value="general" className="font-bold uppercase text-[10px] tracking-widest data-[state=active]:bg-white data-[state=active]:text-emerald-600 dark:data-[state=active]:bg-slate-800">
+            <Zap className="size-3 mr-2" /> General
+          </TabsTrigger>
+          <TabsTrigger value="vehicles" className="font-bold uppercase text-[10px] tracking-widest data-[state=active]:bg-white data-[state=active]:text-emerald-600 dark:data-[state=active]:bg-slate-800">
+            <Truck className="size-3 mr-2" /> Vehicles
+          </TabsTrigger>
+          <TabsTrigger value="environment" className="font-bold uppercase text-[10px] tracking-widest data-[state=active]:bg-white data-[state=active]:text-emerald-600 dark:data-[state=active]:bg-slate-800">
+            <CloudRain className="size-3 mr-2" /> Environment
+          </TabsTrigger>
+        </TabsList>
+
+        {/* General Tab */}
+        <TabsContent value="general" className="mt-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card className="shadow-sm border-slate-200/60 dark:border-slate-800/60">
+              <CardHeader>
+                <CardTitle className="text-sm font-black uppercase tracking-tighter flex items-center gap-2">
+                  <Gauge className="size-4 text-emerald-600" />
+                  Monte Carlo Core
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold text-slate-500 uppercase">Iterations Count</Label>
+                  <Input
+                    type="number"
+                    value={iterations}
+                    onChange={(e) => setIterations(parseInt(e.target.value) || 0)}
+                    className="font-mono font-bold"
+                  />
+                  <p className="text-[9px] font-bold text-muted-foreground uppercase opacity-60">High values = Better accuracy, slower load.</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-sm border-slate-200/60 dark:border-slate-800/60">
+              <CardHeader>
+                <CardTitle className="text-sm font-black uppercase tracking-tighter flex items-center gap-2">
+                  <ShieldCheck className="size-4 text-emerald-600" />
+                  Rush Hour Windows
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold text-slate-500 uppercase">AM Start (H)</Label>
+                    <Input type="number" value={peakHours.am_start} onChange={(e) => setPeakHours({...peakHours, am_start: parseInt(e.target.value) || 0})} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold text-slate-500 uppercase">AM End (H)</Label>
+                    <Input type="number" value={peakHours.am_end} onChange={(e) => setPeakHours({...peakHours, am_end: parseInt(e.target.value) || 0})} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold text-slate-500 uppercase">PM Start (H)</Label>
+                    <Input type="number" value={peakHours.pm_start} onChange={(e) => setPeakHours({...peakHours, pm_start: parseInt(e.target.value) || 0})} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold text-slate-500 uppercase">PM End (H)</Label>
+                    <Input type="number" value={peakHours.pm_end} onChange={(e) => setPeakHours({...peakHours, pm_end: parseInt(e.target.value) || 0})} />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Vehicles Tab */}
+        <TabsContent value="vehicles" className="mt-6 space-y-6">
+          <div className="grid grid-cols-1 gap-6">
+            {vehicles.map((v, idx) => (
+              <Card key={v.vehicle} className="shadow-sm border-slate-200/60 dark:border-slate-800/60">
+                <CardHeader>
+                  <CardTitle className="text-lg font-black uppercase tracking-tighter text-emerald-600">
+                    {v.vehicle} Parameters
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-bold text-slate-500 uppercase">Speed (kph)</Label>
+                      <Input type="number" value={v.base_speed_kph} onChange={(e) => updateVehicle(idx, { base_speed_kph: parseInt(e.target.value) || 0 })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-bold text-slate-500 uppercase">Capacity</Label>
+                      <Input type="number" value={v.capacity} onChange={(e) => updateVehicle(idx, { capacity: parseInt(e.target.value) || 0 })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-bold text-slate-500 uppercase">Peak Wait (Min/Max)</Label>
+                      <div className="flex gap-2">
+                        <Input type="number" value={v.peak_min_wait} onChange={(e) => updateVehicle(idx, { peak_min_wait: parseInt(e.target.value) || 0 })} />
+                        <Input type="number" value={v.peak_max_wait} onChange={(e) => updateVehicle(idx, { peak_max_wait: parseInt(e.target.value) || 0 })} />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-bold text-slate-500 uppercase">Stops (Min/Max)</Label>
+                      <div className="flex gap-2">
+                        <Input type="number" value={v.min_stops} onChange={(e) => updateVehicle(idx, { min_stops: parseInt(e.target.value) || 0 })} />
+                        <Input type="number" value={v.max_stops} onChange={(e) => updateVehicle(idx, { max_stops: parseInt(e.target.value) || 0 })} />
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        {/* Environment Tab */}
+        <TabsContent value="environment" className="mt-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {weather.map((w, idx) => (
+              <Card key={w.condition} className="shadow-sm border-slate-200/60 dark:border-slate-800/60">
+                <div className={`h-1 w-full ${w.condition === 'rain' ? 'bg-blue-500' : 'bg-emerald-500'}`} />
+                <CardHeader>
+                  <CardTitle className="text-sm font-black uppercase tracking-tighter">{w.condition} MODIFIER</CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold text-slate-500 uppercase">Speed Factor</Label>
+                    <Input type="number" step="0.1" value={w.speed_factor} onChange={(e) => updateWeather(idx, { speed_factor: parseFloat(e.target.value) || 1 })} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold text-slate-500 uppercase">Wait Factor</Label>
+                    <Input type="number" step="0.1" value={w.wait_factor} onChange={(e) => updateWeather(idx, { wait_factor: parseFloat(e.target.value) || 1 })} />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

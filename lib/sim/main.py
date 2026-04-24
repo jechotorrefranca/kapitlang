@@ -28,8 +28,14 @@ _DEFAULTS: dict[str, dict] = {
     },
 }
 
-def is_peak(time_str: str) -> bool:
+def is_peak(time_str: str, peak_hours: dict | None = None) -> bool:
     hour = int(time_str.split(":")[0])
+    if peak_hours:
+        am_start = peak_hours.get("am_start", 6)
+        am_end = peak_hours.get("am_end", 9)
+        pm_start = peak_hours.get("pm_start", 17)
+        pm_end = peak_hours.get("pm_end", 20)
+        return am_start <= hour <= am_end or pm_start <= hour <= pm_end
     return 6 <= hour <= 9 or 17 <= hour <= 20
 
 def simulate(
@@ -40,6 +46,7 @@ def simulate(
     vehicle_config: dict | None = None,
     weather_modifier: dict | None = None,
     iterations: int = 500,
+    peak_hours: dict | None = None,
 ) -> dict:
     cfg = _DEFAULTS.get(vehicle, _DEFAULTS["jeepney"]).copy()
     if vehicle_config:
@@ -55,7 +62,7 @@ def simulate(
         w_speed, w_wait = 1.0, 1.0
 
     base_speed = cfg["base_speed_kph"] * w_speed
-    peak = is_peak(time)
+    peak = is_peak(time, peak_hours)
 
     results: list[float] = []
     total_wait_time = 0.0
@@ -108,5 +115,6 @@ def run_simulation(data: dict):
         vehicle_config=data.get("vehicle_config"),
         weather_modifier=data.get("weather_modifier"),
         iterations=int(data.get("iterations", 500)),
+        peak_hours=data.get("peak_hours"),
     )
 

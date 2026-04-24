@@ -42,7 +42,11 @@ export async function POST(req: Request) {
   const iterationsSetting = await convex.query(api.routes.getSystemSetting, {
     key: "monte_carlo_tests",
   });
+  const peakHoursSetting = await convex.query(api.routes.getSystemSetting, {
+    key: "peak_hours",
+  });
   const iterations = iterationsSetting?.value ?? 500;
+  const peak_hours = peakHoursSetting?.value ?? null;
   const pythonUrl = process.env.PYTHON_API_URL || "http://localhost:8000";
   const simRes = await fetch(`${pythonUrl}/simulate`, {
     method: "POST",
@@ -55,6 +59,7 @@ export async function POST(req: Request) {
       vehicle_config: vehicleConfig ?? null,
       weather_modifier: weatherModifier ?? null,
       iterations,
+      peak_hours,
     }),
   });
   if (!simRes.ok) {
