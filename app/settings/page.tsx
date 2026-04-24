@@ -267,6 +267,13 @@ export default function SettingsPage() {
                       </div>
                     </div>
                     <div className="space-y-2">
+                      <Label className="text-[10px] font-bold text-slate-500 uppercase">Off-Peak Wait (Min/Max)</Label>
+                      <div className="flex gap-2">
+                        <Input type="number" value={v.offpeak_min_wait} onChange={(e) => updateVehicle(idx, { offpeak_min_wait: parseInt(e.target.value) || 0 })} />
+                        <Input type="number" value={v.offpeak_max_wait} onChange={(e) => updateVehicle(idx, { offpeak_max_wait: parseInt(e.target.value) || 0 })} />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
                       <Label className="text-[10px] font-bold text-slate-500 uppercase">Stops (Min/Max)</Label>
                       <div className="flex gap-2">
                         <Input type="number" value={v.min_stops} onChange={(e) => updateVehicle(idx, { min_stops: parseInt(e.target.value) || 0 })} />
