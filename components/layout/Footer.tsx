@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/dialog";
 import { Heart } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 
 export function Footer() {
   const developers = [
@@ -139,12 +138,49 @@ export function Footer() {
               </div>
             </DialogContent>
           </Dialog>
-          <Link
-            href="#"
-            className="hover:text-emerald-600 transition-colors border-l pl-8 border-border"
-          >
-            Privacy Policy
-          </Link>
+          <Dialog>
+            <DialogTrigger asChild>
+              <button className="hover:text-emerald-600 transition-colors cursor-pointer outline-none border-l pl-8 border-border">
+                Privacy Policy
+              </button>
+            </DialogTrigger>
+            <DialogContent className="max-w-xl p-12">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-black uppercase tracking-tighter flex items-center gap-2 text-emerald-600">
+                  Privacy Policy
+                </DialogTitle>
+                <DialogDescription className="text-xs font-bold uppercase tracking-widest opacity-60">
+                  Last Updated: April 2026
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-6 py-4">
+                <div className="space-y-2">
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-100">1. Data Collection</h3>
+                  <p className="text-[11px] leading-relaxed text-slate-600 dark:text-slate-400 font-medium">
+                    Kapit Lang does <strong>not</strong> collect, store, or share any personal identifiers or user information. Our platform is designed as a tool for public simulation and does not require registration or personal data entry.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-100">2. Cookies & Tracking</h3>
+                  <p className="text-[11px] leading-relaxed text-slate-600 dark:text-slate-400 font-medium">
+                    We do not use tracking cookies or third-party analytics to monitor your behavior. Any localized settings (like Experimental Lab state) are stored solely on your device via <strong>localStorage</strong>.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-100">3. External APIs</h3>
+                  <p className="text-[11px] leading-relaxed text-slate-600 dark:text-slate-400 font-medium">
+                    Distance calculations are performed via <strong>OSRM</strong>. No personal data or location history is transmitted; only the coordinates required for the specific route calculation are processed.
+                  </p>
+                </div>
+              </div>
+              <div className="bg-emerald-50 dark:bg-emerald-950/20 p-4 rounded-xl border border-emerald-100 dark:border-emerald-900/30 text-center">
+                <p className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-widest leading-relaxed">
+                  Your privacy is preserved by design. <br />
+                  Safe travels, Bulakenyo!
+                </p>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </footer>
