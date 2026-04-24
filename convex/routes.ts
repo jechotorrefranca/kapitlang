@@ -228,3 +228,34 @@ export const getTotalSimulationLogsCount = query({
     return all.length;
   },
 });
+
+// Chaos Factors
+export const getChaosFactors = query({
+  handler: async (ctx) => {
+    return await ctx.db.query("chaosFactors").collect();
+  },
+});
+
+export const upsertChaosFactor = mutation({
+  args: {
+    key: v.string(),
+    enabled: v.boolean(),
+    value: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("chaosFactors")
+      .withIndex("by_key", (q) => q.eq("key", args.key))
+      .unique();
+
+    if (existing) {
+      await ctx.db.patch(existing._id, { enabled: args.enabled, value: args.value });
+    } else {
+      await ctx.db.insert("chaosFactors", {
+        key: args.key,
+        enabled: args.enabled,
+        value: args.value,
+      });
+    }
+  },
+});

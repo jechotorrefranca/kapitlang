@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { SimulationResult } from "@/lib/types";
-import { Bus, Car, Info, PlayCircle, Sparkles } from "lucide-react";
+import { Bomb, Bus, Car, FlaskConical, Info, PlayCircle, Sparkles } from "lucide-react";
 import { SimulationLoader } from "../3D/SimulationLoader";
 interface ForecastResultsProps {
   status: "idle" | "simulating" | "completed";
@@ -93,7 +93,7 @@ export function ForecastResults({ status, result }: ForecastResultsProps) {
             Wait Time Intervals
           </p>
           <div className="flex items-center gap-1.5 text-[8px] font-bold">
-            <div className="size-1.5 rounded-full bg-emerald-500" /> MONTE CARLO
+            <div className="size-1.5 rounded-full bg-emerald-500" /> MONTE CARLO ({result?.iterations || 500} TESTS)
           </div>
         </div>
         {(() => {
@@ -161,8 +161,13 @@ export function ForecastResults({ status, result }: ForecastResultsProps) {
         { }
         {result?.factors && (
           <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-3">
-            <p className="text-[10px] font-bold uppercase text-muted-foreground">
+            <p className="text-[10px] font-bold uppercase text-muted-foreground flex items-center justify-between">
               Applied Factors ({result.vehicle})
+              {result.is_experimental && (
+                <span className="text-purple-600 font-black animate-pulse flex items-center gap-1">
+                  <FlaskConical className="size-3" /> CHAOS ENGINE
+                </span>
+              )}
             </p>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
               <div className="bg-slate-50 dark:bg-slate-900/50 rounded flex flex-col p-2 border">
@@ -190,6 +195,38 @@ export function ForecastResults({ status, result }: ForecastResultsProps) {
                 </span>
               </div>
             </div>
+
+            {/* Chaos Events */}
+            {result.factors.chaos_events && result.factors.chaos_events.length > 0 && (
+              <div className="mt-4 p-3 bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 rounded-lg space-y-2">
+                <div className="flex items-center gap-2">
+                  <Bomb className="size-3 text-red-600" />
+                  <span className="text-[10px] font-black uppercase text-red-600 tracking-tighter">Events Detected</span>
+                </div>
+                <div className="grid grid-cols-1 gap-1.5">
+                  {result.factors.chaos_events.map((event, idx) => (
+                    <div key={idx} className="flex items-center justify-between bg-white/50 dark:bg-red-900/20 rounded p-1.5 border border-red-100/50 dark:border-red-900/30">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-black text-red-700 dark:text-red-300 uppercase leading-none mb-1">
+                          {event.name}
+                        </span>
+                        <span className="text-[9px] font-bold text-red-600/60 uppercase">
+                          Impact: +{event.avg_time_added}m avg delay
+                        </span>
+                      </div>
+                      <div className="flex flex-col items-end">
+                         <span className="text-xs font-mono font-bold text-red-700 dark:text-red-300">
+                          {event.count}/{result.iterations || 500}
+                        </span>
+                        <span className="text-[8px] font-bold text-red-600/40 uppercase">
+                          Occurrence
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

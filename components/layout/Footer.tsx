@@ -22,7 +22,7 @@ export function Footer() {
             Support
           </Link>
           <Link href="#" className="hover:text-emerald-600 transition-colors">
-            Status
+            Members
           </Link>
           <Link
             href="#"

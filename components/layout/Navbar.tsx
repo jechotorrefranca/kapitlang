@@ -1,16 +1,38 @@
 "use client";
 
-import { api } from "@/convex/_generated/api";
-import { useQuery } from "convex/react";
 import { Beaker, Bus, LayoutDashboard, Settings } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export function Navbar() {
   const pathname = usePathname();
-  const experimentalSetting = useQuery(api.routes.getSystemSetting, { key: "experimental_enabled" });
-  const experimentalEnabled = experimentalSetting?.value === true;
+  
+  // Local state to track experimental status for immediate UI updates
+  const [isExp, setIsExp] = useState(false);
+
+  // Function to sync with localStorage
+  const syncExp = () => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("experimental_enabled") === "true";
+      setIsExp(stored);
+    }
+  };
+
+  useEffect(() => {
+    syncExp(); // Initial check
+    
+    // Listen for custom event from settings page
+    window.addEventListener("experimental-changed", syncExp);
+    // Listen for storage events (if changed in another tab)
+    window.addEventListener("storage", syncExp);
+    
+    return () => {
+      window.removeEventListener("experimental-changed", syncExp);
+      window.removeEventListener("storage", syncExp);
+    };
+  }, []);
 
   const getLinkClassName = (href: string) => {
     const isActive = pathname === href;
@@ -48,7 +70,7 @@ export function Navbar() {
               <Bus className="size-4" />
               Routes
             </Link>
-            {experimentalEnabled && (
+            {isExp && (
               <Link href="/experimental" className={getLinkClassName("/experimental")}>
                 <Beaker className="size-4 text-purple-600" />
                 <span className="text-purple-600">Experimental</span>

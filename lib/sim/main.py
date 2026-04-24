@@ -118,3 +118,24 @@ def run_simulation(data: dict):
         peak_hours=data.get("peak_hours"),
     )
 
+from chaos_sim import simulate_chaos
+
+@app.post("/simulate_chaos")
+def run_chaos_simulation(data: dict):
+    required = {"vehicle", "weather", "time", "distance_km"}
+    missing = required - data.keys()
+    if missing:
+        raise HTTPException(status_code=422, detail=f"Missing fields: {missing}")
+
+    return simulate_chaos(
+        vehicle=data["vehicle"],
+        distance_km=float(data["distance_km"]),
+        weather=data["weather"],
+        time=data["time"],
+        base_defaults=_DEFAULTS,
+        vehicle_config=data.get("vehicle_config"),
+        weather_modifier=data.get("weather_modifier"),
+        iterations=int(data.get("iterations", 500)),
+        peak_hours=data.get("peak_hours"),
+        chaos_factors=data.get("chaos_factors"),
+    )

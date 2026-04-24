@@ -47,8 +47,21 @@ export async function POST(req: Request) {
   });
   const iterations = iterationsSetting?.value ?? 500;
   const peak_hours = peakHoursSetting?.value ?? null;
+
+  const experimentalEnabledSetting = await convex.query(api.routes.getSystemSetting, {
+    key: "experimental_enabled",
+  });
+  const experimentalEnabled = experimentalEnabledSetting?.value === true;
+
+  let chaosFactors: unknown[] | null = null;
+  if (experimentalEnabled) {
+    chaosFactors = await convex.query(api.routes.getChaosFactors);
+  }
+
   const pythonUrl = process.env.PYTHON_API_URL || "http://localhost:8000";
-  const simRes = await fetch(`${pythonUrl}/simulate`, {
+  const endpoint = experimentalEnabled ? "/simulate_chaos" : "/simulate";
+
+  const simRes = await fetch(`${pythonUrl}${endpoint}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -60,12 +73,16 @@ export async function POST(req: Request) {
       weather_modifier: weatherModifier ?? null,
       iterations,
       peak_hours,
+      chaos_factors: chaosFactors,
     }),
   });
+
   if (!simRes.ok) {
     return Response.json({ error: "Simulation engine error" }, { status: simRes.status });
   }
+
   const data = await simRes.json();
+
   await convex.mutation(api.routes.logSimulation, {
     origin: origin ?? "Custom PIN",
     destination: destination ?? "Custom PIN",
@@ -81,6 +98,7 @@ export async function POST(req: Request) {
     result_max: data.max,
     result_avg: data.avg,
   });
+
   const factors = {
     ...(data.factors || {}),
     base_travel_min:    data.factors?.base_travel_min    ?? data.base_travel_min    ?? null,
@@ -89,7 +107,9 @@ export async function POST(req: Request) {
     weather_factor:     data.factors?.weather_factor     ?? data.weather_factor      ?? (weatherModifier?.speed_factor ?? 1),
     speed_kph:          vehicleConfig?.base_speed_kph    ?? null,
     capacity:           vehicleConfig?.capacity          ?? null,
+    chaos_events:       data.chaos_events                ?? null,
   };
+
   return Response.json({
     min: data.min,
     max: data.max,
@@ -97,7 +117,9 @@ export async function POST(req: Request) {
     distance_km,
     vehicle,
     weather,
-    factors
+    factors,
+    is_experimental: experimentalEnabled,
+    iterations: data.iterations || iterations
   });
 }
 async function fetchOsrmDistance(waypointStr: string): Promise<number> {

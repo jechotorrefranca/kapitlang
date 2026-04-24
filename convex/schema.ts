@@ -43,4 +43,9 @@ export default defineSchema({
     key: v.string(),
     value: v.any(),
   }).index("by_key", ["key"]),
+  chaosFactors: defineTable({
+    key: v.string(),
+    enabled: v.boolean(),
+    value: v.number(), // percentage or minutes
+  }).index("by_key", ["key"]),
 });

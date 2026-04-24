@@ -4,11 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { api } from "@/convex/_generated/api";
 import { VehicleConfig, WeatherModifier } from "@/lib/types";
 import { useMutation, useQuery } from "convex/react";
-import { Switch } from "@/components/ui/switch";
 import { CloudRain, FlaskConical, Gauge, Save, Settings2, ShieldCheck, Truck, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -38,6 +38,7 @@ export default function SettingsPage() {
   const [experimentalEnabled, setExperimentalEnabled] = useState(false);
   const [vehicles, setVehicles] = useState<VehicleConfig[]>([]);
   const [weather, setWeather] = useState<WeatherModifier[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Sync database values to local state on load
   useEffect(() => {
@@ -49,6 +50,7 @@ export default function SettingsPage() {
   }, [systemSettings, peakHoursSetting, experimentalSetting, dbVehicleConfigs, dbWeatherModifiers]);
 
   const handleSaveAll = async () => {
+    setIsSaving(true);
     const loadingToast = toast.loading("Saving all changes...");
     try {
       // 1. Save General Settings
@@ -74,6 +76,8 @@ export default function SettingsPage() {
     } catch {
       toast.dismiss(loadingToast);
       toast.error("Failed to save some settings");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -101,9 +105,13 @@ export default function SettingsPage() {
             Fine-tune the stochastic engine parameters and global transit rules.
           </p>
         </div>
-        <Button onClick={handleSaveAll} className="bg-emerald-600 hover:bg-emerald-700 font-bold gap-2 shadow-md shadow-emerald-500/10 px-6">
+        <Button
+          onClick={handleSaveAll}
+          disabled={isSaving}
+          className="bg-emerald-600 hover:bg-emerald-700 font-bold gap-2 shadow-md shadow-emerald-500/10 px-6"
+        >
           <Save className="size-4" />
-          SAVE CHANGES
+          {isSaving ? "Saving..." : "Save Changes"}
         </Button>
       </div>
 
@@ -155,21 +163,21 @@ export default function SettingsPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="text-[10px] font-bold text-slate-500 uppercase">AM Start (H)</Label>
-                    <Input type="number" value={peakHours.am_start} onChange={(e) => setPeakHours({...peakHours, am_start: parseInt(e.target.value) || 0})} />
+                    <Input type="number" value={peakHours.am_start} onChange={(e) => setPeakHours({ ...peakHours, am_start: parseInt(e.target.value) || 0 })} />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-[10px] font-bold text-slate-500 uppercase">AM End (H)</Label>
-                    <Input type="number" value={peakHours.am_end} onChange={(e) => setPeakHours({...peakHours, am_end: parseInt(e.target.value) || 0})} />
+                    <Input type="number" value={peakHours.am_end} onChange={(e) => setPeakHours({ ...peakHours, am_end: parseInt(e.target.value) || 0 })} />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="text-[10px] font-bold text-slate-500 uppercase">PM Start (H)</Label>
-                    <Input type="number" value={peakHours.pm_start} onChange={(e) => setPeakHours({...peakHours, pm_start: parseInt(e.target.value) || 0})} />
+                    <Input type="number" value={peakHours.pm_start} onChange={(e) => setPeakHours({ ...peakHours, pm_start: parseInt(e.target.value) || 0 })} />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-[10px] font-bold text-slate-500 uppercase">PM End (H)</Label>
-                    <Input type="number" value={peakHours.pm_end} onChange={(e) => setPeakHours({...peakHours, pm_end: parseInt(e.target.value) || 0})} />
+                    <Input type="number" value={peakHours.pm_end} onChange={(e) => setPeakHours({ ...peakHours, pm_end: parseInt(e.target.value) || 0 })} />
                   </div>
                 </div>
               </CardContent>
@@ -252,10 +260,12 @@ export default function SettingsPage() {
             </CardTitle>
             <p className="text-[10px] font-bold text-muted-foreground uppercase opacity-60">Unlock pre-alpha features and algorithms.</p>
           </div>
-          <Switch 
+          <Switch
             checked={experimentalEnabled}
             onCheckedChange={async (val) => {
               setExperimentalEnabled(val);
+              localStorage.setItem("experimental_enabled", val.toString());
+              window.dispatchEvent(new Event("experimental-changed"));
               await upsertSetting({ key: "experimental_enabled", value: val });
               if (val) {
                 toast.success("Experimental Lab activated", {
