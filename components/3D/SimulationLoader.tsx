@@ -56,13 +56,17 @@ function SUV() {
 }
 export function SimulationLoader() {
   return (
-    <div className="w-full h-48 bg-zinc-900/50 rounded-xl overflow-hidden border border-emerald-500/20 relative group">
+    <div className="w-full h-48 bg-zinc-900/50 rounded-xl overflow-hidden border border-emerald-500/20 relative group pointer-events-none select-none">
       <div className="absolute inset-x-0 bottom-4 text-center z-10 pointer-events-none">
         <p className="text-[10px] font-black tracking-widest text-white uppercase animate-pulse">
           Simulating Transit Dynamics...
         </p>
       </div>
-      <Canvas shadows gl={{ antialias: true }}>
+      <Canvas 
+        shadows 
+        gl={{ antialias: true }} 
+        style={{ pointerEvents: "none" }}
+      >
         <color attach="background" args={["#87ceeb"]} />
         <PerspectiveCamera makeDefault position={[5, 3, 6]} fov={35} />
         <ambientLight intensity={2} />
@@ -77,9 +81,8 @@ export function SimulationLoader() {
         <OrbitControls
           enableZoom={false}
           enablePan={false}
+          enableRotate={false}
           autoRotate={false}
-          minPolarAngle={Math.PI / 4}
-          maxPolarAngle={Math.PI / 2.2}
         />
       </Canvas>
     </div>

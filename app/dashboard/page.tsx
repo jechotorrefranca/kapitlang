@@ -3,6 +3,7 @@ import { FleetPerformance } from "@/components/dashboard/FleetPerformance";
 import { ForecastResults } from "@/components/dashboard/ForecastResults";
 import { MapDisplay } from "@/components/dashboard/MapDisplay";
 import { SimulationPanel } from "@/components/dashboard/SimulationPanel";
+import { SimulationLoader } from "@/components/3D/SimulationLoader";
 import { DEFAULT_DESTINATION, DEFAULT_ORIGIN, getPresetName, LocationState } from "@/lib/constants";
 import { SimulationResult } from "@/lib/types";
 import { useState } from "react";
@@ -92,6 +93,11 @@ export default function DashboardPage() {
         <ForecastResults status={simulationStatus} result={simulationResult} />
         <FleetPerformance />
       </section>
+      
+      {/* Preload 3D Assets and Canvas */}
+      <div className="fixed opacity-0 pointer-events-none -z-50 size-0 overflow-hidden">
+        <SimulationLoader />
+      </div>
     </div>
   );
 }
