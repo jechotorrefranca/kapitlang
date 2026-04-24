@@ -66,7 +66,14 @@ export function RecentRoutes() {
                       <span className="truncate max-w-[80px] sm:max-w-[120px]">{log.destination}</span>
                     </div>
                     <p className="text-[9px] font-bold text-muted-foreground uppercase flex items-center gap-1.5 mt-0.5">
-                      {log.vehicle} • {log.weather}
+                      <span>{log.vehicle}</span>
+                      <span className="opacity-30">•</span>
+                      <span>{log.weather}</span>
+                      <span className="opacity-30">•</span>
+                      <span className="flex items-center gap-0.5 text-slate-500">
+                        <History className="size-2.5" />
+                        {log.time}
+                      </span>
                     </p>
                   </div>
                 </div>
