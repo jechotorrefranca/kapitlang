@@ -90,7 +90,7 @@ export function Footer() {
                 About
               </button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-3xl p-15">
+            <DialogContent className="sm:max-w-2xl p-13">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-3">
                   <Image src="/kapitlang_logo.png" alt="Logo" width={32} height={32} className="object-contain" />
