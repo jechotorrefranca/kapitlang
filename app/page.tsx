@@ -33,19 +33,35 @@ export default function Home() {
   const [simulationStatus, setSimulationStatus] = useState<"idle" | "simulating" | "completed">("idle");
   const [simulationResult, setSimulationResult] = useState<SimulationResult | null>(null);
 
+  const fetchGeocodedName = async (lat: number, lng: number, setter: typeof setOrigin) => {
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+      const data = await res.json();
+      if (data && data.address) {
+        const road = data.address.road || data.address.neighbourhood || "";
+        const city = data.address.town || data.address.city || data.address.village || "";
+        const shortName = [road, city].filter(Boolean).join(", ");
+        
+        if (shortName) {
+          setter(prev => prev.name === "Dropped Pin" ? { ...prev, name: `📍 ${shortName}` as unknown as typeof prev.name } : prev);
+        }
+      }
+    } catch {
+      // Degrade gracefully, keep "Dropped Pin"
+    }
+  };
+
   const handleOriginUpdate = (lat: number, lng: number) => {
-    setOrigin({
-      name: getPresetName(lat, lng),
-      coords: { lat, lng }
-    });
+    const presetName = getPresetName(lat, lng);
+    setOrigin({ name: presetName, coords: { lat, lng } });
+    if (presetName === "Dropped Pin") fetchGeocodedName(lat, lng, setOrigin);
     if (simulationStatus === "completed") setSimulationStatus("idle");
   };
 
   const handleDestinationUpdate = (lat: number, lng: number) => {
-    setDestination({
-      name: getPresetName(lat, lng),
-      coords: { lat, lng }
-    });
+    const presetName = getPresetName(lat, lng);
+    setDestination({ name: presetName, coords: { lat, lng } });
+    if (presetName === "Dropped Pin") fetchGeocodedName(lat, lng, setDestination);
     if (simulationStatus === "completed") setSimulationStatus("idle");
   };
 

@@ -1,5 +1,6 @@
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
+import { buildRouteWaypoints, haversineDist } from "@/lib/routing";
 
 // Module-level client — reused across requests
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
@@ -30,7 +31,14 @@ export async function POST(req: Request) {
   }
 
   if (distance_km === null) {
-    distance_km = await fetchOsrmDistance(originLng, originLat, destLng, destLat);
+    const waypoints = buildRouteWaypoints(
+      origin ?? "Dropped Pin",
+      { lat: originLat, lng: originLng },
+      destination ?? "Dropped Pin",
+      { lat: destLat, lng: destLng }
+    );
+    const waypointStr = waypoints.join(";");
+    distance_km = await fetchOsrmDistance(waypointStr);
   }
 
   // ── 2. Weather modifier from Convex ───────────────────────────────────────
@@ -112,15 +120,10 @@ export async function POST(req: Request) {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-async function fetchOsrmDistance(
-  originLng: number,
-  originLat: number,
-  destLng: number,
-  destLat: number
-): Promise<number> {
+async function fetchOsrmDistance(waypointStr: string): Promise<number> {
   try {
     const res = await fetch(
-      `http://router.project-osrm.org/route/v1/driving/${originLng},${originLat};${destLng},${destLat}?overview=false`,
+      `http://router.project-osrm.org/route/v1/driving/${waypointStr}?overview=false`,
       { signal: AbortSignal.timeout(5000) }
     );
     const json = await res.json();
@@ -128,20 +131,15 @@ async function fetchOsrmDistance(
       return parseFloat((json.routes[0].distance / 1000).toFixed(3));
     }
   } catch {
-    // fall through to Haversine
+    // fall through 
   }
-  return parseFloat((haversine(originLat, originLng, destLat, destLng) * 1.2).toFixed(3));
-}
-
-function haversine(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371;
-  const phi1 = (lat1 * Math.PI) / 180;
-  const phi2 = (lat2 * Math.PI) / 180;
-  const dphi = ((lat2 - lat1) * Math.PI) / 180;
-  const dlambda = ((lon2 - lon1) * Math.PI) / 180;
-  const a =
-    Math.sin(dphi / 2) ** 2 +
-    Math.cos(phi1) * Math.cos(phi2) * Math.sin(dlambda / 2) ** 2;
-  return 2 * R * Math.asin(Math.sqrt(a));
+  
+  // If OSRM fails entirely, we just roughly guess using the first and last point
+  const pts = waypointStr.split(";");
+  const first = pts[0].split(",");
+  const last = pts[pts.length - 1].split(",");
+  return parseFloat(
+    (haversineDist(Number(first[1]), Number(first[0]), Number(last[1]), Number(last[0])) * 1.2).toFixed(3)
+  );
 }
 

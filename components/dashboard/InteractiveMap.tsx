@@ -1,6 +1,6 @@
 "use client";
 
-import { HIGHWAY_SEQUENCE, LocationState, ROUTE_HINTS, TERMINAL_COORDINATES, TerminalName } from "@/lib/constants";
+import { LocationState } from "@/lib/constants";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useEffect, useMemo, useState } from "react";
@@ -79,58 +79,15 @@ function CoordDebug() {
   );
 }
 
-// ─── Waypoint builder ─────────────────────────────────────────────────────────
-//
-// Builds the ordered list of [lng,lat] strings to send to OSRM.
-//
-// For named terminal pairs (no Dropped Pin):
-//   origin → [hints-for-seg-0] → terminal-1 → [hints-for-seg-1] → terminal-2 → … → destination
-//
-// Hints for each pair are looked up from ROUTE_HINTS:
-//   forward key "A|B"   — used as-is   (northbound)
-//   reverse key "B|A"   — reversed      (southbound)
-//
-type Coord = { lat: number; lng: number };
+import { buildRouteWaypoints } from "@/lib/routing";
 
 function buildWaypoints(
+  originName: string,
   originCoords:  Coord,
+  destName: string,
   destCoords:    Coord,
-  startIndex:    number,   // index in HIGHWAY_SEQUENCE, -1 if Dropped Pin
-  endIndex:      number,
 ): string[] {
-  const pts: string[] = [`${originCoords.lng},${originCoords.lat}`];
-
-  if (startIndex !== -1 && endIndex !== -1 && startIndex !== endIndex) {
-    const isNorthbound = startIndex < endIndex;
-    const step = isNorthbound ? 1 : -1;
-
-    for (let i = startIndex; isNorthbound ? i < endIndex : i > endIndex; i += step) {
-      const fromName = HIGHWAY_SEQUENCE[i];
-      const toName   = HIGHWAY_SEQUENCE[i + step];
-      if (!fromName || !toName || fromName === "Dropped Pin" || toName === "Dropped Pin") continue;
-
-      // Inject route hints for this pair
-      const fwdKey = `${fromName}|${toName}`;
-      const revKey = `${toName}|${fromName}`;
-      const hintPts: Coord[] = ROUTE_HINTS[fwdKey]
-        ? ROUTE_HINTS[fwdKey]
-        : ROUTE_HINTS[revKey]
-          ? [...ROUTE_HINTS[revKey]].reverse()
-          : [];
-
-      for (const h of hintPts) pts.push(`${h.lng},${h.lat}`);
-
-      // Add the next intermediate terminal (skip if it IS the destination)
-      if (i + step !== endIndex) {
-        const nextTerminal = toName as Exclude<TerminalName, "Dropped Pin">;
-        const c = TERMINAL_COORDINATES[nextTerminal];
-        if (c) pts.push(`${c.lng},${c.lat}`);
-      }
-    }
-  }
-
-  pts.push(`${destCoords.lng},${destCoords.lat}`);
-  return pts;
+  return buildRouteWaypoints(originName, originCoords, destName, destCoords);
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
@@ -141,13 +98,13 @@ export default function InteractiveMap(props: InteractiveMapProps) {
   const [routeData, setRouteData] = useState<LatLng[]>([]);
 
   useEffect(() => {
-    const startIndex = HIGHWAY_SEQUENCE.indexOf(origin.name);
-    const endIndex   = HIGHWAY_SEQUENCE.indexOf(destination.name);
+    if (!origin.coords || !destination.coords) return;
 
     const fetchRoute = async () => {
       try {
         const waypointParts = buildWaypoints(
-          origin.coords, destination.coords, startIndex, endIndex
+          origin.name, origin.coords, 
+          destination.name, destination.coords
         );
         const waypointStr = waypointParts.join(";");
         const url = `https://router.project-osrm.org/route/v1/driving/${waypointStr}?geometries=geojson&overview=full`;

@@ -34,6 +34,17 @@ export function SimulationPanel({
 
   const handleSelectionChange = (val: string, type: "origin" | "destination") => {
     if (val === "Dropped Pin") return;
+
+    // Disallow identical hardcoded terminals natively by automatically swapping them
+    if (type === "origin" && val === destination.name) {
+      onSwap();
+      return;
+    }
+    if (type === "destination" && val === origin.name) {
+      onSwap();
+      return;
+    }
+
     const coords = TERMINAL_COORDINATES[val as Exclude<TerminalName, "Dropped Pin">];
     if (coords) {
       if (type === "origin") onOriginUpdate(coords.lat, coords.lng);
@@ -71,8 +82,10 @@ export function SimulationPanel({
               {UI_TOWNS.map(town => (
                 <NativeSelectOption key={town} value={town}>{town}</NativeSelectOption>
               ))}
-              {origin.name === "Dropped Pin" && (
-                <NativeSelectOption value="Dropped Pin">Custom Location (Drop a Pin)</NativeSelectOption>
+              {!UI_TOWNS.includes(origin.name) && (
+                <NativeSelectOption value={origin.name}>
+                  {origin.name === "Dropped Pin" ? "Custom Location (Drop a Pin)" : origin.name}
+                </NativeSelectOption>
               )}
             </NativeSelect>
           </div>
@@ -103,8 +116,10 @@ export function SimulationPanel({
               {UI_TOWNS.map(town => (
                 <NativeSelectOption key={town} value={town}>{town}</NativeSelectOption>
               ))}
-              {destination.name === "Dropped Pin" && (
-                <NativeSelectOption value="Dropped Pin">Custom Location (Drop a Pin)</NativeSelectOption>
+              {!UI_TOWNS.includes(destination.name) && (
+                <NativeSelectOption value={destination.name}>
+                  {destination.name === "Dropped Pin" ? "Custom Location (Drop a Pin)" : destination.name}
+                </NativeSelectOption>
               )}
             </NativeSelect>
           </div>

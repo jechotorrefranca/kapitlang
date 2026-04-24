@@ -194,25 +194,26 @@ export const seedDatabase = action({
     }
     console.log(`✓ Seeded ${WEATHER_MODIFIERS.length} weather modifiers`);
 
-    // 3. Fetch adjacent segment distances from OSRM (with ROUTE_HINTS applied)
-    const adjacentKm: number[] = [];
+    // 3. Fetch bidirectional segment distances from OSRM (with ROUTE_HINTS applied)
+    const fwdKm: number[] = [];
+    const revKm: number[] = [];
     for (let i = 0; i < n - 1; i++) {
       const fromName = TERMINAL_NAMES[i];
       const toName   = TERMINAL_NAMES[i + 1];
-      const hintKey  = `${fromName}|${toName}`;
-      const hasHints = !!(ROUTE_HINTS[hintKey] ?? null);
 
-      const dist = await fetchOsrmDistance(fromName, toName);
-      adjacentKm.push(dist);
-      console.log(
-        `  Segment [${i}→${i + 1}] ${fromName} → ${toName}: ${dist} km${
-          hasHints ? ` (with ${ROUTE_HINTS[hintKey].length} hint waypoints)` : ""
-        }`
-      );
-      // Be respectful to the public OSRM API
+      // Forward segment
+      const distFwd = await fetchOsrmDistance(fromName, toName);
+      fwdKm.push(distFwd);
       await sleep(350);
+
+      // Reverse segment
+      const distRev = await fetchOsrmDistance(toName, fromName);
+      revKm.push(distRev);
+      await sleep(350);
+
+      console.log(`  Segment [${i}↔${i + 1}] ${fromName} ↔ ${toName}: FWD ${distFwd}km | REV ${distRev}km`);
     }
-    console.log(`✓ Fetched ${adjacentKm.length} adjacent road segments`);
+    console.log(`✓ Fetched ${fwdKm.length} forward and ${revKm.length} reverse segments`);
 
     // 4. Compute and store all N×N directed pairs
     let stored = 0;
@@ -220,14 +221,15 @@ export const seedDatabase = action({
       for (let j = 0; j < n; j++) {
         if (i === j) continue;
 
-        const lo = Math.min(i, j);
-        const hi = Math.max(i, j);
-
-        // Sum consecutive adjacent segments between lo and hi
         let distance_km = 0;
-        for (let k = lo; k < hi; k++) {
-          distance_km += adjacentKm[k];
+        if (i < j) {
+          // Forward path (Northbound) sum
+          for (let k = i; k < j; k++) distance_km += fwdKm[k];
+        } else {
+          // Reverse path (Southbound) sum
+          for (let k = j; k < i; k++) distance_km += revKm[k];
         }
+        
         distance_km = parseFloat(distance_km.toFixed(3));
 
         await ctx.runMutation(api.routes.upsertRouteSegment, {
@@ -238,11 +240,10 @@ export const seedDatabase = action({
         stored++;
       }
     }
-    console.log(`✓ Stored ${stored} route segment pairs`);
+    console.log(`✓ Stored ${stored} distinct bidirectional route segment pairs`);
 
     return {
       status: "success",
-      adjacentSegments: adjacentKm,
       totalPairsStored: stored,
     };
   },
