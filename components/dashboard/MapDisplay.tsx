@@ -56,7 +56,7 @@ export function MapDisplay({ origin, destination, onOriginUpdate, onDestinationU
           onZoomReady={handleZoomReady}
         />
         { }
-        <div className="absolute top-4 right-4 z-1000 flex flex-col gap-2">
+        <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
           <Button
             size="sm"
             variant={pinMode === "origin" ? "default" : "secondary"}
@@ -77,7 +77,7 @@ export function MapDisplay({ origin, destination, onOriginUpdate, onDestinationU
           </Button>
         </div>
         { }
-        <div className="absolute bottom-8 left-4 z-1000 flex flex-col gap-2">
+        <div className="absolute bottom-8 left-4 z-10 flex flex-col gap-2">
           <Button
             size="icon"
             variant="secondary"
@@ -108,7 +108,7 @@ export function MapDisplay({ origin, destination, onOriginUpdate, onDestinationU
             </Button>
           </div>
         </div>
-        <div className="absolute top-4 left-4 z-1000 bg-background/80 backdrop-blur border px-2.5 py-1.5 rounded-md shadow-xs flex items-center gap-3">
+        <div className="absolute top-4 left-4 z-10 bg-background/80 backdrop-blur border px-2.5 py-1.5 rounded-md shadow-xs flex items-center gap-3">
           <div className="flex flex-col">
             <span className="text-[7px] font-bold text-muted-foreground uppercase leading-none mb-1">
               Status

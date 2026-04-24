@@ -57,7 +57,7 @@ function CoordDebug() {
   if (!coords) return null;
   return (
     <div style={{
-      position: "absolute", bottom: 32, right: 12, zIndex: 1000,
+      position: "absolute", bottom: 32, right: 12, zIndex: 10,
       pointerEvents: "none", background: "rgba(0,0,0,0.65)",
       backdropFilter: "blur(4px)", color: "#6ee7b7",
       fontFamily: "monospace", fontSize: 11, fontWeight: 700,

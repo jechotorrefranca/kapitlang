@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { api } from "@/convex/_generated/api";
 import { VehicleConfig, WeatherModifier } from "@/lib/types";
 import { useMutation, useQuery } from "convex/react";
-import { CloudRain, FlaskConical, Gauge, Save, Settings2, ShieldCheck, Truck, Zap } from "lucide-react";
+import { CloudRain, FlaskConical, Gauge, RotateCcw, Save, Settings2, ShieldCheck, Truck, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -87,6 +87,49 @@ export default function SettingsPage() {
     setVehicles(newVehicles);
   };
 
+  const handleReset = () => {
+    setIterations(500);
+    setPeakHours({
+      am_start: 6,
+      am_end: 9,
+      pm_start: 17,
+      pm_end: 20,
+    });
+    setVehicles([
+      {
+        vehicle: "jeepney",
+        capacity: 22,
+        base_speed_kph: 25,
+        peak_min_wait: 5,
+        peak_max_wait: 15,
+        offpeak_min_wait: 15,
+        offpeak_max_wait: 35,
+        min_stops: 4,
+        max_stops: 10,
+        min_stop_delay: 0.5,
+        max_stop_delay: 1.5,
+      },
+      {
+        vehicle: "uv",
+        capacity: 16,
+        base_speed_kph: 35,
+        peak_min_wait: 5,
+        peak_max_wait: 12,
+        offpeak_min_wait: 20,
+        offpeak_max_wait: 40,
+        min_stops: 0,
+        max_stops: 2,
+        min_stop_delay: 0.2,
+        max_stop_delay: 0.6,
+      },
+    ]);
+    setWeather([
+      { condition: "clear", speed_factor: 1.0, wait_factor: 1.0 },
+      { condition: "rain", speed_factor: 0.8, wait_factor: 1.2 },
+    ]);
+    toast.info("Local settings reset to factory defaults. Review and click Save Changes to persist.");
+  };
+
   const updateWeather = (index: number, updates: Partial<WeatherModifier>) => {
     const newWeather = [...weather];
     newWeather[index] = { ...newWeather[index], ...updates };
@@ -105,14 +148,25 @@ export default function SettingsPage() {
             Fine-tune the stochastic engine parameters and global transit rules.
           </p>
         </div>
-        <Button
-          onClick={handleSaveAll}
-          disabled={isSaving}
-          className="bg-emerald-600 hover:bg-emerald-700 font-bold gap-2 shadow-md shadow-emerald-500/10 px-6"
-        >
-          <Save className="size-4" />
-          {isSaving ? "Saving..." : "Save Changes"}
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            onClick={handleReset}
+            disabled={isSaving}
+            className="text-slate-500 hover:text-red-600 font-bold gap-2 text-xs"
+          >
+            <RotateCcw className="size-3" />
+            Reset to Defaults
+          </Button>
+          <Button
+            onClick={handleSaveAll}
+            disabled={isSaving}
+            className="bg-emerald-600 hover:bg-emerald-700 font-bold gap-2 shadow-md shadow-emerald-500/10 px-6"
+          >
+            <Save className="size-4" />
+            {isSaving ? "Saving..." : "Save Changes"}
+          </Button>
+        </div>
       </div>
 
       <Tabs defaultValue="general" className="w-full">
@@ -258,7 +312,7 @@ export default function SettingsPage() {
               <FlaskConical className="size-4 text-purple-600" />
               Experimental Lab
             </CardTitle>
-            <p className="text-[10px] font-bold text-muted-foreground uppercase opacity-60">Unlock pre-alpha features and algorithms.</p>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase opacity-60">Unleash the unpredictable. Explore the hidden variables of chaos.</p>
           </div>
           <Switch
             checked={experimentalEnabled}
