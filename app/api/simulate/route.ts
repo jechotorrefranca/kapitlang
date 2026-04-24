@@ -89,13 +89,14 @@ export async function POST(req: Request) {
   });
 
   // ── 6. Build factor breakdown for selected vehicle ────────────────────────
-  const factors = data.factors ?? {
-    base_travel_min:    data.base_travel_min    ?? null,
-    avg_wait_min:       data.avg_wait_min        ?? null,
-    avg_stop_delay_min: data.avg_stop_delay_min  ?? null,
-    weather_factor:     data.weather_factor      ?? (weatherModifier?.speed_factor ?? 1),
-    speed_kph:          vehicleConfig?.base_speed_kph ?? null,
-    capacity:           vehicleConfig?.capacity       ?? null,
+  const factors = {
+    ...(data.factors || {}),
+    base_travel_min:    data.factors?.base_travel_min    ?? data.base_travel_min    ?? null,
+    avg_wait_min:       data.factors?.avg_wait_min       ?? data.avg_wait_min        ?? null,
+    avg_stop_delay_min: data.factors?.avg_stop_delay_min ?? data.avg_stop_delay_min  ?? null,
+    weather_factor:     data.factors?.weather_factor     ?? data.weather_factor      ?? (weatherModifier?.speed_factor ?? 1),
+    speed_kph:          vehicleConfig?.base_speed_kph    ?? null,
+    capacity:           vehicleConfig?.capacity          ?? null,
   };
 
   return Response.json({
