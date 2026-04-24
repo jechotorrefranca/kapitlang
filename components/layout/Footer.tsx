@@ -43,7 +43,7 @@ export function Footer() {
                 Support
               </button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-7xl sm:h-[85vh] max-h-[900px] flex flex-col">
+            <DialogContent className="w-[95vw] sm:max-w-7xl h-[95vh] sm:h-[85vh] max-h-[900px] flex flex-col p-4 sm:p-6">
               <DialogHeader>
                 <DialogTitle className="text-xl font-black uppercase tracking-tight flex items-center gap-2">
                   <Heart className="size-5 text-red-500 fill-red-500" />
@@ -53,11 +53,11 @@ export function Footer() {
                   Kapit Lang is a passion project. Your support helps us keep the servers running and the simulations accurate.
                 </DialogDescription>
               </DialogHeader>
-              <div className="flex-1 flex items-center justify-center">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-12 w-full">
+              <div className="flex-1 overflow-y-auto py-4 sm:py-6 px-4 sm:px-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 w-full max-w-none mx-auto justify-items-center">
                   {developers.map((dev) => (
-                    <div key={dev.name} className="flex flex-col items-center gap-4 group">
-                      <div className="relative size-96 rounded-2xl overflow-hidden border-4 border-slate-100 dark:border-slate-800 shadow-xl group-hover:scale-105 transition-transform duration-500">
+                    <div key={dev.name} className="flex flex-col items-center gap-3 group w-full py-2">
+                      <div className="relative size-60 sm:size-72 md:size-80 lg:size-[360px] rounded-2xl overflow-hidden border-4 border-slate-100 dark:border-slate-800 shadow-xl group-hover:scale-105 transition-transform duration-500">
                         <Image
                           src={dev.image}
                           alt={`${dev.name} QR Code`}
@@ -77,7 +77,7 @@ export function Footer() {
                   ))}
                 </div>
               </div>
-              <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-dashed text-center">
+              <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-dashed text-center mt-auto">
                 <p className="text-[10px] font-bold text-slate-500 uppercase leading-relaxed">
                   Kumakapit lang kami kaya magbigay na kayo 🚌💨
                 </p>

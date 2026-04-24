@@ -60,10 +60,10 @@ export function RecentRoutes() {
                     )}
                   </div>
                   <div className="min-w-0">
-                    <div className="flex items-center gap-1 text-[11px] font-black uppercase tracking-tight truncate">
-                      <span>{log.origin}</span>
-                      <ArrowRight className="size-2 text-muted-foreground shrink-0" />
-                      <span>{log.destination}</span>
+                    <div className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-tight w-full">
+                      <span className="truncate max-w-[80px] sm:max-w-[120px]">{log.origin}</span>
+                      <ArrowRight className="size-2.5 text-muted-foreground shrink-0" />
+                      <span className="truncate max-w-[80px] sm:max-w-[120px]">{log.destination}</span>
                     </div>
                     <p className="text-[9px] font-bold text-muted-foreground uppercase flex items-center gap-1.5 mt-0.5">
                       {log.vehicle} • {log.weather}

@@ -45,8 +45,8 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md">
       <div className="container flex h-16 items-center justify-between px-6 max-w-7xl mx-auto">
-        <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-3 group">
+        <div className="flex items-center gap-2 sm:gap-6">
+          <Link href="/" className="flex items-center gap-2 sm:gap-3 group">
             <Image
               src="/kapitlang_logo.png"
               alt="Kapit Lang Logo"
@@ -55,30 +55,30 @@ export function Navbar() {
               className="object-contain transition-transform group-hover:scale-110"
               style={{ height: "auto" }}
             />
-            <span className="text-xl font-black tracking-tighter text-slate-900 dark:text-white uppercase">
+            <span className="text-sm sm:text-xl font-black tracking-tighter text-slate-900 dark:text-white uppercase whitespace-nowrap">
               KAPIT <span className="text-emerald-600">LANG</span>
             </span>
           </Link>
         </div>
         <div className="flex items-center gap-4">
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
+          <nav className="flex items-center gap-4 md:gap-8 text-sm font-medium">
             <Link href="/dashboard" className={getLinkClassName("/dashboard")}>
-              <LayoutDashboard className="size-4" />
-              Dashboard
+              <LayoutDashboard className="size-5 md:size-4" />
+              <span className="hidden md:inline">Dashboard</span>
             </Link>
             <Link href="/routes" className={getLinkClassName("/routes")}>
-              <Bus className="size-4" />
-              Routes
+              <Bus className="size-5 md:size-4" />
+              <span className="hidden md:inline">Routes</span>
             </Link>
             {isExp && (
               <Link href="/experimental" className={getLinkClassName("/experimental")}>
-                <Beaker className="size-4 text-purple-600" />
-                <span className="text-purple-600">Experimental</span>
+                <Beaker className="size-5 md:size-4 text-purple-600" />
+                <span className="hidden md:inline text-purple-600">Experimental</span>
               </Link>
             )}
             <Link href="/settings" className={getLinkClassName("/settings")}>
-              <Settings className="size-4" />
-              Settings
+              <Settings className="size-5 md:size-4" />
+              <span className="hidden md:inline">Settings</span>
             </Link>
           </nav>
         </div>
