@@ -1,23 +1,18 @@
 "use client";
-
 import { HIGHWAY_SEQUENCE } from "@/lib/constants";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CircleMarker, MapContainer, Marker, Polyline, TileLayer, useMap, useMapEvents } from "react-leaflet";
-
 // @ts-expect-error internal leaflet
 delete L.Icon.Default.prototype._getIconUrl;
-
 interface Coord { lat: number; lng: number }
 type LatLng = [number, number];
-
 interface Props {
   coords: Record<string, Coord>;
   selected: string | null;
   onDrag: (name: string, lat: number, lng: number) => void;
   onSelect: (name: string) => void;
-
   hints: Record<string, Coord[]>;
   selectedSegment: string | null;
   hintEditMode: boolean;
@@ -25,8 +20,6 @@ interface Props {
   onDragHint: (segKey: string, idx: number, lat: number, lng: number) => void;
   onDeleteHint: (segKey: string, idx: number) => void;
 }
-
-// ─── Fly to target ────────────────────────────────────────────────────────────
 function FlyTo({ target }: { target: LatLng | null }) {
   const map = useMap();
   useEffect(() => {
@@ -34,8 +27,6 @@ function FlyTo({ target }: { target: LatLng | null }) {
   }, [target, map]);
   return null;
 }
-
-// ─── Coord debug overlay ──────────────────────────────────────────────────────
 function CoordDebug({ addMode }: { addMode: boolean }) {
   const [pos, setPos] = useState<Coord | null>(null);
   useMapEvents({
@@ -60,8 +51,6 @@ function CoordDebug({ addMode }: { addMode: boolean }) {
     </div>
   );
 }
-
-// ─── Map click handler — adds hints in add-mode ───────────────────────────────
 function MapClickHandler({
   active, segKey, onAdd,
 }: { active: boolean; segKey: string | null; onAdd: Props["onAddHint"] }) {
@@ -74,8 +63,6 @@ function MapClickHandler({
   });
   return null;
 }
-
-// ─── Terminal marker ──────────────────────────────────────────────────────────
 function TerminalMarker({
   name, index, coord, isSelected, isDimmed, onDrag, onSelect,
 }: {
@@ -98,7 +85,6 @@ function TerminalMarker({
       iconAnchor: [size / 2, size / 2],
     });
   }, [isSelected, isDimmed, index]);
-
   return (
     <Marker
       position={[coord.lat, coord.lng]}
@@ -111,8 +97,6 @@ function TerminalMarker({
     />
   );
 }
-
-// ─── Hint marker ──────────────────────────────────────────────────────────────
 function HintMarker({
   segKey, idx, coord, isActive, onDrag, onDelete,
 }: {
@@ -132,7 +116,6 @@ function HintMarker({
       iconAnchor: [size / 2, size / 2],
     });
   }, [isActive, idx]);
-
   return (
     <Marker
       position={[coord.lat, coord.lng]}
@@ -145,19 +128,15 @@ function HintMarker({
     />
   );
 }
-
-// ─── OSRM fetch ───────────────────────────────────────────────────────────────
 async function fetchRouteGeometry(
   terminals: string[],
   coords: Record<string, Coord>,
   extraWaypoints: Coord[] = [],
 ): Promise<LatLng[]> {
-  // Build waypoints: origin, [hints], destination
   const termPts = terminals.map((n) => coords[n]).filter(Boolean);
   const allPts = extraWaypoints.length
     ? [termPts[0], ...extraWaypoints, termPts[termPts.length - 1]]
     : termPts;
-
   const waypointStr = allPts.map((c) => `${c.lng},${c.lat}`).join(";");
   const res = await fetch(
     `https://router.project-osrm.org/route/v1/driving/${waypointStr}?geometries=geojson&overview=full`
@@ -168,10 +147,7 @@ async function fetchRouteGeometry(
     ([lng, lat]: [number, number]): LatLng => [lat, lng]
   );
 }
-
 const KNOWN_TERMINALS = HIGHWAY_SEQUENCE.filter((t) => t !== "Dropped Pin");
-
-// ─── Main component ───────────────────────────────────────────────────────────
 export default function TerminalMapEditor({
   coords, selected, onDrag, onSelect,
   hints, selectedSegment, hintEditMode, onAddHint, onDragHint, onDeleteHint,
@@ -181,21 +157,16 @@ export default function TerminalMapEditor({
   const [isFetching, setIsFetching] = useState(false);
   const fullDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
   const segDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // ── Full highway route (all terminals, debounced on coord change) ──────────
   useEffect(() => {
     if (fullDebounce.current) clearTimeout(fullDebounce.current);
     fullDebounce.current = setTimeout(async () => {
       setIsFetching(true);
       try { setRouteLine(await fetchRouteGeometry(KNOWN_TERMINALS, coords)); }
-      catch { /* silent */ }
+      catch { }
       finally { setIsFetching(false); }
     }, 600);
     return () => { if (fullDebounce.current) clearTimeout(fullDebounce.current); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [coords]);
-
-  // ── Selected segment route (with hints applied, debounced) ────────────────
   useEffect(() => {
     if (!selectedSegment) { setSegLine([]); return; }
     if (segDebounce.current) clearTimeout(segDebounce.current);
@@ -205,30 +176,22 @@ export default function TerminalMapEditor({
       try {
         const line = await fetchRouteGeometry([a, b], coords, segHints);
         setSegLine(line);
-      } catch { /* silent */ }
+      } catch { }
     }, 400);
     return () => { if (segDebounce.current) clearTimeout(segDebounce.current); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSegment, hints, coords]);
-
-  // ── Fly target ────────────────────────────────────────────────────────────
   const flyTarget = useMemo((): LatLng | null => {
     if (!selected || !coords[selected]) return null;
     return [coords[selected].lat, coords[selected].lng];
   }, [selected, coords]);
-
-  // ── Segment endpoint names ────────────────────────────────────────────────
   const segEndpoints = useMemo(() => {
     if (!selectedSegment) return new Set<string>();
     return new Set(selectedSegment.split("|"));
   }, [selectedSegment]);
-
-  // ── All hint markers to render ────────────────────────────────────────────
   const hintEntries = useMemo(() =>
     Object.entries(hints).flatMap(([key, pts]) =>
       pts.map((coord, idx) => ({ key, idx, coord }))
     ), [hints]);
-
   return (
     <div className="relative h-full w-full">
       <MapContainer
@@ -241,24 +204,21 @@ export default function TerminalMapEditor({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
         />
-
-        {/* Full MacArthur Highway baseline */}
+        { }
         {routeLine.length > 0 && (
           <>
             <Polyline positions={routeLine} pathOptions={{ color: "#10b981", weight: 10, opacity: 0.12, lineCap: "round", lineJoin: "round" }} />
             <Polyline positions={routeLine} pathOptions={{ color: "#059669", weight: 2.5, opacity: 0.5, lineCap: "round", lineJoin: "round", dashArray: "6 4" }} />
           </>
         )}
-
-        {/* Selected segment route with hints applied */}
+        { }
         {segLine.length > 0 && (
           <>
             <Polyline positions={segLine} pathOptions={{ color: "#7c3aed", weight: 12, opacity: 0.2, lineCap: "round", lineJoin: "round" }} />
             <Polyline positions={segLine} pathOptions={{ color: "#a78bfa", weight: 4, opacity: 1, lineCap: "round", lineJoin: "round" }} />
           </>
         )}
-
-        {/* Highlight segment endpoints with a ring */}
+        { }
         {[...segEndpoints].map((name) => {
           const c = coords[name];
           if (!c) return null;
@@ -271,8 +231,7 @@ export default function TerminalMapEditor({
             />
           );
         })}
-
-        {/* All terminal markers */}
+        { }
         {KNOWN_TERMINALS.map((name, index) => {
           const coord = coords[name];
           if (!coord) return null;
@@ -290,8 +249,7 @@ export default function TerminalMapEditor({
             />
           );
         })}
-
-        {/* All hint markers */}
+        { }
         {hintEntries.map(({ key, idx, coord }) => (
           <HintMarker
             key={`hint-${key}-${idx}`}
@@ -303,8 +261,7 @@ export default function TerminalMapEditor({
             onDelete={onDeleteHint}
           />
         ))}
-
-        {/* Map-click handler for hint-add mode */}
+        { }
         <MapClickHandler
           active={hintEditMode}
           segKey={selectedSegment}
@@ -313,8 +270,7 @@ export default function TerminalMapEditor({
         <FlyTo target={flyTarget} />
         <CoordDebug addMode={hintEditMode} />
       </MapContainer>
-
-      {/* Fetching pill */}
+      { }
       {isFetching && (
         <div style={{
           position: "absolute", top: 12, left: "50%", transform: "translateX(-50%)",
@@ -327,8 +283,7 @@ export default function TerminalMapEditor({
           ⟳ Updating route…
         </div>
       )}
-
-      {/* Hint-add mode cursor hint */}
+      { }
       {hintEditMode && selectedSegment && (
         <div style={{
           position: "absolute", top: 12, left: "50%", transform: "translateX(-50%)",

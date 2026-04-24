@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   title: "KAPIT LANG | Transit Simulation Dashboard",
   description: "Transit Simulation Dashboard for Kapit Lang",
   icons: {
-    icon: "/convex.svg",
+    icon: "/kapitlang_logo.png",
   },
 };
 

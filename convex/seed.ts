@@ -1,9 +1,5 @@
-import { action } from "./_generated/server";
 import { api } from "./_generated/api";
-
-// ─── MacArthur Highway Terminal Data ─────────────────────────────────────────
-// Must mirror TERMINAL_COORDINATES and HIGHWAY_SEQUENCE in lib/constants.ts
-
+import { action } from "./_generated/server";
 const TERMINAL_NAMES = [
   "Valenzuela (Monumento)",
   "Our Lady of Fatima University",
@@ -24,7 +20,6 @@ const TERMINAL_NAMES = [
   "Centro Escolar University",
   "Calumpit (Bridge)",
 ] as const;
-
 const TERMINAL_COORDS: Record<string, { lat: number; lng: number }> = {
   "Valenzuela (Monumento)": { lat: 14.6576030, lng: 120.9840524 },
   "Our Lady of Fatima University": { lat: 14.6806000, lng: 120.9791000 },
@@ -45,13 +40,6 @@ const TERMINAL_COORDS: Record<string, { lat: number; lng: number }> = {
   "Centro Escolar University": { lat: 14.8702000, lng: 120.8004000 },
   "Calumpit (Bridge)":      { lat: 14.9189000, lng: 120.7658000 },
 };
-
-// ─── Route Hints ──────────────────────────────────────────────────────────────
-// Intermediate waypoints injected into OSRM when a segment follows a non-direct
-// road path (loops, divided highways, etc.). Must mirror ROUTE_HINTS in
-// lib/constants.ts so that seeded distances match what the map shows.
-//
-// Key format: "Origin Terminal|Destination Terminal" (directional)
 const ROUTE_HINTS: Record<string, { lat: number; lng: number }[]> = {
   "SM City Marilao|Marilao (Crossing)": [
     { lat: 14.7599000, lng: 120.9505000 },
@@ -72,9 +60,6 @@ const ROUTE_HINTS: Record<string, { lat: number; lng: number }[]> = {
     { lat: 14.8370528, lng: 120.8630387 },
   ],
 };
-
-// ─── Baseline Configs (matches paper's Conceptual Model) ──────────────────────
-
 const VEHICLE_CONFIGS = [
   {
     vehicle: "jeepney",
@@ -103,14 +88,10 @@ const VEHICLE_CONFIGS = [
     max_stop_delay: 0.6,
   },
 ];
-
 const WEATHER_MODIFIERS = [
   { condition: "clear", speed_factor: 1.0, wait_factor: 1.0 },
   { condition: "rain", speed_factor: 0.8, wait_factor: 1.2 },
 ];
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
 function haversine(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371;
   const phi1 = (lat1 * Math.PI) / 180;
@@ -122,15 +103,12 @@ function haversine(lat1: number, lon1: number, lat2: number, lon2: number): numb
     Math.cos(phi1) * Math.cos(phi2) * Math.sin(dlambda / 2) ** 2;
   return 2 * R * Math.asin(Math.sqrt(a));
 }
-
 async function fetchOsrmDistance(
   fromName: string,
   toName: string,
 ): Promise<number> {
   const from = TERMINAL_COORDS[fromName];
   const to   = TERMINAL_COORDS[toName];
-
-  // Build waypoints: from + hints (forward or reverse) + to
   const fwdKey  = `${fromName}|${toName}`;
   const revKey  = `${toName}|${fromName}`;
   const hints   = ROUTE_HINTS[fwdKey]
@@ -141,7 +119,6 @@ async function fetchOsrmDistance(
     { lat: to.lat,   lng: to.lng   },
   ];
   const waypointStr = waypoints.map((p) => `${p.lng},${p.lat}`).join(";");
-
   try {
     const url = `https://router.project-osrm.org/route/v1/driving/${waypointStr}?overview=false`;
     const res  = await fetch(url);
@@ -150,88 +127,53 @@ async function fetchOsrmDistance(
       return parseFloat((data.routes[0].distance / 1000).toFixed(3));
     }
   } catch {
-    // fall through to Haversine fallback
   }
-  // Haversine × 1.2 road correction factor
   return parseFloat(
     (haversine(from.lat, from.lng, to.lat, to.lng) * 1.2).toFixed(3)
   );
 }
-
 function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
 }
-
-// ─── Seed Action ──────────────────────────────────────────────────────────────
-
-/**
- * Populates all Convex baseline tables.
- * Clears routeSegments first so stale terminal entries from previous
- * seeds are fully removed before inserting the new set.
- *
- * Strategy: Fetch N−1 consecutive adjacent segment distances from OSRM,
- * then compute all N×N pairwise distances by summing intermediate segments.
- * Safe to re-run whenever terminal names or coordinates change.
- */
 export const seedDatabase = action({
   args: {},
   handler: async (ctx) => {
     const n = TERMINAL_NAMES.length;
-
-    // 0. Wipe stale route segments so old terminal names don't linger
     const cleared = await ctx.runMutation(api.routes.clearRouteSegments, {});
     console.log(`✓ Cleared ${cleared.deleted} stale route segments`);
-
-    // 1. Seed vehicle configs
     for (const cfg of VEHICLE_CONFIGS) {
       await ctx.runMutation(api.routes.upsertVehicleConfig, cfg);
     }
     console.log(`✓ Seeded ${VEHICLE_CONFIGS.length} vehicle configs`);
-
-    // 2. Seed weather modifiers
     for (const mod of WEATHER_MODIFIERS) {
       await ctx.runMutation(api.routes.upsertWeatherModifier, mod);
     }
     console.log(`✓ Seeded ${WEATHER_MODIFIERS.length} weather modifiers`);
-
-    // 3. Fetch bidirectional segment distances from OSRM (with ROUTE_HINTS applied)
     const fwdKm: number[] = [];
     const revKm: number[] = [];
     for (let i = 0; i < n - 1; i++) {
       const fromName = TERMINAL_NAMES[i];
       const toName   = TERMINAL_NAMES[i + 1];
-
-      // Forward segment
       const distFwd = await fetchOsrmDistance(fromName, toName);
       fwdKm.push(distFwd);
       await sleep(350);
-
-      // Reverse segment
       const distRev = await fetchOsrmDistance(toName, fromName);
       revKm.push(distRev);
       await sleep(350);
-
       console.log(`  Segment [${i}↔${i + 1}] ${fromName} ↔ ${toName}: FWD ${distFwd}km | REV ${distRev}km`);
     }
     console.log(`✓ Fetched ${fwdKm.length} forward and ${revKm.length} reverse segments`);
-
-    // 4. Compute and store all N×N directed pairs
     let stored = 0;
     for (let i = 0; i < n; i++) {
       for (let j = 0; j < n; j++) {
         if (i === j) continue;
-
         let distance_km = 0;
         if (i < j) {
-          // Forward path (Northbound) sum
           for (let k = i; k < j; k++) distance_km += fwdKm[k];
         } else {
-          // Reverse path (Southbound) sum
           for (let k = j; k < i; k++) distance_km += revKm[k];
         }
-        
         distance_km = parseFloat(distance_km.toFixed(3));
-
         await ctx.runMutation(api.routes.upsertRouteSegment, {
           origin: TERMINAL_NAMES[i],
           destination: TERMINAL_NAMES[j],
@@ -241,7 +183,6 @@ export const seedDatabase = action({
       }
     }
     console.log(`✓ Stored ${stored} distinct bidirectional route segment pairs`);
-
     return {
       status: "success",
       totalPairsStored: stored,

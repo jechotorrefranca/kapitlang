@@ -3,8 +3,6 @@ import random
 
 app = FastAPI()
 
-# ─── Defaults (used if Convex baseline data is not yet seeded) ────────────────
-# These match the paper's Conceptual Model exactly.
 _DEFAULTS: dict[str, dict] = {
     "jeepney": {
         "base_speed_kph":   25,
@@ -43,18 +41,16 @@ def simulate(
     weather_modifier: dict | None = None,
     iterations: int = 500,
 ) -> dict:
-    # Merge Convex config over defaults (Convex values win)
     cfg = _DEFAULTS.get(vehicle, _DEFAULTS["jeepney"]).copy()
     if vehicle_config:
         cfg.update({k: v for k, v in vehicle_config.items() if k in cfg})
 
-    # Weather modifiers — only applied when "rain" is selected
     is_rain = weather == "rain"
     if weather_modifier and is_rain:
         w_speed = weather_modifier.get("speed_factor", 0.8)
         w_wait  = weather_modifier.get("wait_factor",  1.2)
     elif is_rain:
-        w_speed, w_wait = 0.8, 1.2   # paper's Environmental Modifier defaults
+        w_speed, w_wait = 0.8, 1.2
     else:
         w_speed, w_wait = 1.0, 1.0
 
@@ -65,11 +61,9 @@ def simulate(
     total_wait_time = 0.0
     total_stop_delay = 0.0
 
-    # ── Base travel time ──────────────────────────────────────────────────
-    base_travel_min = (distance_km / base_speed) * 60  # → minutes
+    base_travel_min = (distance_km / base_speed) * 60
 
     for _ in range(iterations):
-        # ── Terminal wait time (The Terminal Fill-Rate Rule) ──────────────────
         if peak:
             wait_time = random.uniform(cfg["peak_min_wait"], cfg["peak_max_wait"])
         else:
@@ -77,7 +71,6 @@ def simulate(
         wait_time *= w_wait
         total_wait_time += wait_time
 
-        # ── En-route stop delays (The En-Route Stop Rule) ─────────────────────
         stops = random.randint(int(cfg["min_stops"]), int(cfg["max_stops"]))
         stop_delay = stops * random.uniform(cfg["min_stop_delay"], cfg["max_stop_delay"])
         total_stop_delay += stop_delay
@@ -116,4 +109,4 @@ def run_simulation(data: dict):
         weather_modifier=data.get("weather_modifier"),
         iterations=int(data.get("iterations", 500)),
     )
-
+

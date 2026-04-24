@@ -1,12 +1,6 @@
+import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
-
-// ─── Queries ────────────────────────────────────────────────────────────────
-
-/**
- * Returns the pre-seeded road distance (in km) for a given origin→destination
- * terminal pair. Returns null if the pair hasn't been seeded yet.
- */
+import { mutation, query } from "./_generated/server";
 export const getRouteSegment = query({
   args: {
     origin: v.string(),
@@ -21,10 +15,6 @@ export const getRouteSegment = query({
       .unique();
   },
 });
-
-/**
- * Returns baseline simulation parameters for the given vehicle type ("jeepney" | "uv").
- */
 export const getVehicleConfig = query({
   args: { vehicle: v.string() },
   handler: async (ctx, args) => {
@@ -34,10 +24,6 @@ export const getVehicleConfig = query({
       .unique();
   },
 });
-
-/**
- * Returns the speed and wait multipliers for the given weather condition ("clear" | "rain").
- */
 export const getWeatherModifier = query({
   args: { condition: v.string() },
   handler: async (ctx, args) => {
@@ -47,40 +33,49 @@ export const getWeatherModifier = query({
       .unique();
   },
 });
-
-/**
- * Returns all weather modifiers. Useful for the Settings page.
- */
 export const getAllWeatherModifiers = query({
   args: {},
   handler: async (ctx) => {
     return await ctx.db.query("weatherModifiers").collect();
   },
 });
-
-/**
- * Returns all vehicle configs. Useful for the Settings page.
- */
 export const getAllVehicleConfigs = query({
   args: {},
   handler: async (ctx) => {
     return await ctx.db.query("vehicleConfig").collect();
   },
 });
-
-/**
- * Returns all simulation logs inside the database. Useful for the Routes page.
- */
 export const getAllSimulationLogs = query({
   args: {},
   handler: async (ctx) => {
     return await ctx.db.query("simulationLogs").order("desc").collect();
   },
 });
-
-/**
- * Returns an individual system setting (like monte_carlo_tests).
- */
+export const getPaginatedSimulationLogs = query({
+  args: { 
+    paginationOpts: paginationOptsValidator,
+    vehicle: v.optional(v.string()),
+    weather: v.optional(v.string()),
+    origin: v.optional(v.string()),
+    destination: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    let q = ctx.db.query("simulationLogs");
+    if (args.vehicle) {
+      q = q.filter((f) => f.eq(f.field("vehicle"), args.vehicle));
+    }
+    if (args.weather) {
+      q = q.filter((f) => f.eq(f.field("weather"), args.weather));
+    }
+    if (args.origin) {
+      q = q.filter((f) => f.eq(f.field("origin"), args.origin));
+    }
+    if (args.destination) {
+      q = q.filter((f) => f.eq(f.field("destination"), args.destination));
+    }
+    return await q.order("desc").paginate(args.paginationOpts);
+  },
+});
 export const getSystemSetting = query({
   args: { key: v.string() },
   handler: async (ctx, args) => {
@@ -90,12 +85,6 @@ export const getSystemSetting = query({
       .unique();
   },
 });
-
-// ─── Mutations ───────────────────────────────────────────────────────────────
-
-/**
- * Upserts a route segment distance. Used by the seed action.
- */
 export const upsertRouteSegment = mutation({
   args: {
     origin: v.string(),
@@ -109,7 +98,6 @@ export const upsertRouteSegment = mutation({
         q.eq("origin", args.origin).eq("destination", args.destination)
       )
       .unique();
-
     if (existing) {
       await ctx.db.patch(existing._id, { distance_km: args.distance_km });
     } else {
@@ -117,10 +105,6 @@ export const upsertRouteSegment = mutation({
     }
   },
 });
-
-/**
- * Upserts all vehicle config parameters. Used by the seed action.
- */
 export const upsertVehicleConfig = mutation({
   args: {
     vehicle: v.string(),
@@ -140,7 +124,6 @@ export const upsertVehicleConfig = mutation({
       .query("vehicleConfig")
       .withIndex("by_vehicle", (q) => q.eq("vehicle", args.vehicle))
       .unique();
-
     if (existing) {
       await ctx.db.patch(existing._id, args);
     } else {
@@ -148,10 +131,6 @@ export const upsertVehicleConfig = mutation({
     }
   },
 });
-
-/**
- * Upserts a weather modifier entry. Used by the seed action.
- */
 export const upsertWeatherModifier = mutation({
   args: {
     condition: v.string(),
@@ -163,7 +142,6 @@ export const upsertWeatherModifier = mutation({
       .query("weatherModifiers")
       .withIndex("by_condition", (q) => q.eq("condition", args.condition))
       .unique();
-
     if (existing) {
       await ctx.db.patch(existing._id, {
         speed_factor: args.speed_factor,
@@ -174,11 +152,6 @@ export const upsertWeatherModifier = mutation({
     }
   },
 });
-
-/**
- * Appends a simulation run to the historical log.
- * Called automatically after every successful simulation.
- */
 export const logSimulation = mutation({
   args: {
     origin: v.string(),
@@ -199,11 +172,6 @@ export const logSimulation = mutation({
     await ctx.db.insert("simulationLogs", args);
   },
 });
-
-/**
- * Deletes ALL documents in routeSegments.
- * Call this before re-seeding when terminal names have changed.
- */
 export const clearRouteSegments = mutation({
   args: {},
   handler: async (ctx) => {
@@ -212,10 +180,6 @@ export const clearRouteSegments = mutation({
     return { deleted: all.length };
   },
 });
-
-/**
- * Upserts a system-wide setting value. Used by the Settings page.
- */
 export const upsertSystemSetting = mutation({
   args: {
     key: v.string(),
@@ -226,11 +190,35 @@ export const upsertSystemSetting = mutation({
       .query("systemSettings")
       .withIndex("by_key", (q) => q.eq("key", args.key))
       .unique();
-
     if (existing) {
       await ctx.db.patch(existing._id, { value: args.value });
     } else {
       await ctx.db.insert("systemSettings", args);
     }
+  },
+});
+export const getTotalSimulationLogsCount = query({
+  args: {
+    vehicle: v.optional(v.string()),
+    weather: v.optional(v.string()),
+    origin: v.optional(v.string()),
+    destination: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    let q = ctx.db.query("simulationLogs");
+    if (args.vehicle) {
+      q = q.filter((f) => f.eq(f.field("vehicle"), args.vehicle));
+    }
+    if (args.weather) {
+      q = q.filter((f) => f.eq(f.field("weather"), args.weather));
+    }
+    if (args.origin) {
+      q = q.filter((f) => f.eq(f.field("origin"), args.origin));
+    }
+    if (args.destination) {
+      q = q.filter((f) => f.eq(f.field("destination"), args.destination));
+    }
+    const all = await q.collect();
+    return all.length;
   },
 });

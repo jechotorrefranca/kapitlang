@@ -50,7 +50,6 @@ export const TERMINAL_COORDINATES: Record<Exclude<TerminalName, "Dropped Pin">, 
   "Calumpit (Bridge)": { lat: 14.9189000, lng: 120.7658000 },
 };
 
-// Source of Truth for the MacArthur Highway sequence (South to North)
 export const HIGHWAY_SEQUENCE: TerminalName[] = [
   "Valenzuela (Monumento)",
   "Our Lady of Fatima University",
@@ -72,7 +71,6 @@ export const HIGHWAY_SEQUENCE: TerminalName[] = [
   "Calumpit (Bridge)",
 ];
 
-// All landmarks are visible in the refined route model
 export const UI_TOWNS: TerminalName[] = HIGHWAY_SEQUENCE;
 
 export const DEFAULT_ORIGIN: LocationState = {
@@ -85,7 +83,6 @@ export const DEFAULT_DESTINATION: LocationState = {
   coords: TERMINAL_COORDINATES["SM City Marilao"],
 };
 
-// Helper to find preset name for coords
 export const getPresetName = (lat: number, lng: number): TerminalName => {
   const match = Object.entries(TERMINAL_COORDINATES).find(([_, coords]) => {
     return Math.abs(coords.lat - lat) < 0.0001 && Math.abs(coords.lng - lng) < 0.0001;

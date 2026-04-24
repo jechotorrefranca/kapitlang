@@ -1,13 +1,11 @@
 import { Card } from "@/components/ui/card";
-import { Info, PlayCircle, Sparkles, Bus, Car } from "lucide-react";
-import { SimulationLoader } from "../3D/SimulationLoader";
 import { SimulationResult } from "@/lib/types";
-
+import { Bus, Car, Info, PlayCircle, Sparkles } from "lucide-react";
+import { SimulationLoader } from "../3D/SimulationLoader";
 interface ForecastResultsProps {
   status: "idle" | "simulating" | "completed";
   result: SimulationResult | null;
 }
-
 export function ForecastResults({ status, result }: ForecastResultsProps) {
   if (status === "idle") {
     return (
@@ -24,7 +22,6 @@ export function ForecastResults({ status, result }: ForecastResultsProps) {
       </Card>
     );
   }
-
   if (status === "simulating") {
     return (
       <Card className="p-0 shadow-sm overflow-hidden min-h-100 flex flex-col">
@@ -46,7 +43,6 @@ export function ForecastResults({ status, result }: ForecastResultsProps) {
       </Card>
     );
   }
-
   return (
     <Card className="p-5 shadow-sm min-h-100 animate-in fade-in zoom-in-95 duration-500">
       <h2 className="text-sm font-bold tracking-tight uppercase mb-6 flex items-center justify-between">
@@ -68,7 +64,6 @@ export function ForecastResults({ status, result }: ForecastResultsProps) {
           <Info className="size-4 text-muted-foreground font-normal" />
         </div>
       </h2>
-
       <div className="grid grid-cols-3 gap-3 mb-6">
         <div className="flex flex-col items-center justify-center p-3 rounded-lg border bg-muted/20">
           <p className="text-[8px] font-bold text-muted-foreground uppercase mb-1">Minimum</p>
@@ -77,7 +72,6 @@ export function ForecastResults({ status, result }: ForecastResultsProps) {
           </p>
           <p className="text-[8px] font-bold text-emerald-600/70 uppercase mt-1">Best Case</p>
         </div>
-
         <div className="flex flex-col items-center justify-center p-3 rounded-lg border bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-800/30 scale-105 shadow-sm relative z-10">
           <p className="text-[8px] font-bold text-emerald-600 uppercase mb-1">Most Likely</p>
           <p className="text-2xl font-black text-emerald-600 leading-none">
@@ -85,7 +79,6 @@ export function ForecastResults({ status, result }: ForecastResultsProps) {
           </p>
           <p className="text-[8px] font-bold text-muted-foreground uppercase mt-2">Probable Duration</p>
         </div>
-
         <div className="flex flex-col items-center justify-center p-3 rounded-lg border bg-muted/20">
           <p className="text-[8px] font-bold text-muted-foreground uppercase mb-1">Maximum</p>
           <p className="text-lg font-bold">
@@ -94,7 +87,6 @@ export function ForecastResults({ status, result }: ForecastResultsProps) {
           <p className="text-[8px] font-bold text-orange-600/70 uppercase mt-1">Worst Case</p>
         </div>
       </div>
-
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <p className="text-[10px] font-bold uppercase text-muted-foreground">
@@ -104,21 +96,16 @@ export function ForecastResults({ status, result }: ForecastResultsProps) {
             <div className="size-1.5 rounded-full bg-emerald-500" /> MONTE CARLO
           </div>
         </div>
-
         {(() => {
-          // Dynamically scale axes based on results
           const axisMin = result ? Math.max(0, Math.floor(result.min / 5) * 5) : 15;
           const axisMax = result ? Math.max(axisMin + 30, Math.ceil(result.max / 10) * 10) : 60;
           const scaleX = (val: number) => Math.max(0, Math.min(100, ((val - axisMin) / (axisMax - axisMin)) * 100));
-
           const xMin = result ? scaleX(result.min) : 0;
           const xAvg = result ? scaleX(result.avg) : 55;
           const xMax = result ? scaleX(result.max) : 100;
-
           const cp1x = (xMin + xAvg) / 2;
           const cp2x = (xAvg + xMax) / 2;
           const dynamicPath = `M${xMin},100 C${cp1x},100 ${cp1x},20 ${xAvg},20 C${cp2x},20 ${cp2x},100 ${xMax},100`;
-
           const span = axisMax - axisMin;
           const markers = [
             axisMin,
@@ -126,7 +113,6 @@ export function ForecastResults({ status, result }: ForecastResultsProps) {
             Math.round(axisMin + span * 0.66),
             axisMax
           ];
-
           return (
             <>
               <div className="relative h-32 w-full bg-muted/20 border rounded overflow-hidden">
@@ -157,14 +143,13 @@ export function ForecastResults({ status, result }: ForecastResultsProps) {
                     strokeDasharray="1,1"
                   />
                 </svg>
-                <div 
+                <div
                   className="absolute bottom-2 -translate-x-1/2 bg-white dark:bg-zinc-800 border text-[8px] font-bold px-1.5 rounded text-emerald-600 transition-all duration-500"
                   style={{ left: `${xAvg}%` }}
                 >
                   {result ? `${Math.round(result.avg)}m` : "—"}
                 </div>
               </div>
-
               <div className="flex justify-between text-[8px] font-black text-muted-foreground/60 uppercase mb-4">
                 {markers.map((m, i) => (
                   <span key={i}>{m}{i === markers.length - 1 ? "+" : "m"}</span>
@@ -173,8 +158,7 @@ export function ForecastResults({ status, result }: ForecastResultsProps) {
             </>
           );
         })()}
-        
-        {/* Factor Breakdown Indicator (Dynamic per vehicle) */}
+        { }
         {result?.factors && (
           <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-3">
             <p className="text-[10px] font-bold uppercase text-muted-foreground">

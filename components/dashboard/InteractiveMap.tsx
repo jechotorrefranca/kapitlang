@@ -1,11 +1,10 @@
 "use client";
-
 import { LocationState } from "@/lib/constants";
+import { buildRouteWaypoints, Coord } from "@/lib/routing";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useEffect, useMemo, useState } from "react";
 import { MapContainer, Marker, Polyline, TileLayer, useMap, useMapEvents } from "react-leaflet";
-
 // @ts-expect-error - internal leaflet property
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -13,7 +12,6 @@ L.Icon.Default.mergeOptions({
   iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
   shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
 });
-
 interface InteractiveMapProps {
   origin: LocationState;
   destination: LocationState;
@@ -25,8 +23,6 @@ interface InteractiveMapProps {
   onLocateComplete: (lat: number, lng: number) => void;
   onZoomReady?: (zoomIn: () => void, zoomOut: () => void) => void;
 }
-
-// ─── Map Controller ───────────────────────────────────────────────────────────
 function MapController({
   pinMode,
   onOriginUpdate,
@@ -37,15 +33,12 @@ function MapController({
   onZoomReady,
 }: InteractiveMapProps) {
   const map = useMap();
-
   useEffect(() => {
     if (shouldLocate) map.locate({ setView: true, maxZoom: 16 });
   }, [shouldLocate, map]);
-
   useEffect(() => {
     onZoomReady?.(() => map.zoomIn(), () => map.zoomOut());
   }, [map, onZoomReady]);
-
   useMapEvents({
     click(e) {
       if (pinMode === "origin") { onOriginUpdate(e.latlng.lat, e.latlng.lng); onPinComplete(); }
@@ -55,13 +48,11 @@ function MapController({
   });
   return null;
 }
-
-// ─── Coordinate debug overlay ─────────────────────────────────────────────────
 function CoordDebug() {
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   useMapEvents({
     mousemove(e) { setCoords({ lat: e.latlng.lat, lng: e.latlng.lng }); },
-    mouseout()   { setCoords(null); },
+    mouseout() { setCoords(null); },
   });
   if (!coords) return null;
   return (
@@ -78,47 +69,35 @@ function CoordDebug() {
     </div>
   );
 }
-
-import { buildRouteWaypoints, Coord } from "@/lib/routing";
-
 function buildWaypoints(
   originName: string,
-  originCoords:  Coord,
+  originCoords: Coord,
   destName: string,
-  destCoords:    Coord,
+  destCoords: Coord,
 ): string[] {
   return buildRouteWaypoints(originName, originCoords, destName, destCoords);
 }
-
-// ─── Main Component ───────────────────────────────────────────────────────────
 type LatLng = [number, number];
-
 export default function InteractiveMap(props: InteractiveMapProps) {
   const { origin, destination, onOriginUpdate, onDestinationUpdate } = props;
   const [routeData, setRouteData] = useState<LatLng[]>([]);
-
   useEffect(() => {
     if (!origin.coords || !destination.coords) return;
-
     const fetchRoute = async () => {
       try {
         const waypointParts = buildWaypoints(
-          origin.name, origin.coords, 
+          origin.name, origin.coords,
           destination.name, destination.coords
         );
         const waypointStr = waypointParts.join(";");
         const url = `https://router.project-osrm.org/route/v1/driving/${waypointStr}?geometries=geojson&overview=full`;
-
-        // Log the URL so you can inspect it in DevTools → Network tab
         console.log(
           `[OSRM] ${origin.name} → ${destination.name}`,
           `\nWaypoints (${waypointParts.length}):`, waypointParts,
           `\nURL:`, url
         );
-
-        const res  = await fetch(url);
+        const res = await fetch(url);
         const data = await res.json();
-
         if (data.code === "Ok" && data.routes?.[0]?.geometry?.coordinates) {
           setRouteData(
             data.routes[0].geometry.coordinates.map(
@@ -132,13 +111,8 @@ export default function InteractiveMap(props: InteractiveMapProps) {
         console.error("[OSRM] Fetch error:", err);
       }
     };
-
     fetchRoute();
-  // origin.name and destination.name are string keys — safe to use in dependency
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [origin.coords, destination.coords, origin.name, destination.name]);
-
-  // ─── Icons ──────────────────────────────────────────────────────────────────
   const originIcon = useMemo(() => L.divIcon({
     html: `
       <div class="flex items-center justify-center">
@@ -150,7 +124,6 @@ export default function InteractiveMap(props: InteractiveMapProps) {
     `,
     className: "", iconSize: [36, 36], iconAnchor: [18, 36],
   }), []);
-
   const destIcon = useMemo(() => L.divIcon({
     html: `
       <div class="flex items-center justify-center">
@@ -162,7 +135,6 @@ export default function InteractiveMap(props: InteractiveMapProps) {
     `,
     className: "", iconSize: [36, 36], iconAnchor: [18, 36],
   }), []);
-
   return (
     <MapContainer
       center={[14.75, 120.95]}
@@ -174,14 +146,12 @@ export default function InteractiveMap(props: InteractiveMapProps) {
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
       />
-
       {routeData.length > 0 && (
         <>
           <Polyline positions={routeData} pathOptions={{ color: "#10b981", weight: 10, opacity: 0.3, lineCap: "round", lineJoin: "round" }} />
           <Polyline positions={routeData} pathOptions={{ color: "#059669", weight: 4, opacity: 1, lineCap: "round", lineJoin: "round" }} />
         </>
       )}
-
       <Marker
         position={[origin.coords.lat, origin.coords.lng]}
         icon={originIcon}
@@ -194,7 +164,6 @@ export default function InteractiveMap(props: InteractiveMapProps) {
         draggable={true}
         eventHandlers={{ dragend: (e) => { const p = e.target.getLatLng(); onDestinationUpdate(p.lat, p.lng); } }}
       />
-
       <MapController {...props} />
       <CoordDebug />
     </MapContainer>

@@ -1,6 +1,5 @@
 import { Card } from "@/components/ui/card";
 import { Bus, Car } from "lucide-react";
-
 export function FleetPerformance() {
   return (
     <Card className="p-5 shadow-sm">

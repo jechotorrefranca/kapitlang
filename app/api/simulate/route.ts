@@ -1,10 +1,7 @@
-import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import { buildRouteWaypoints, haversineDist } from "@/lib/routing";
-
-// Module-level client — reused across requests
+import { ConvexHttpClient } from "convex/browser";
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
-
 export async function POST(req: Request) {
   const body = await req.json();
   const {
@@ -18,10 +15,7 @@ export async function POST(req: Request) {
     destLat,
     destLng,
   } = body;
-
-  // ── 1. Distance: try Convex first, fall back to OSRM ──────────────────────
   let distance_km: number | null = null;
-
   if (origin && destination) {
     const segment = await convex.query(api.routes.getRouteSegment, {
       origin,
@@ -29,7 +23,6 @@ export async function POST(req: Request) {
     });
     if (segment) distance_km = segment.distance_km;
   }
-
   if (distance_km === null) {
     const waypoints = buildRouteWaypoints(
       origin ?? "Dropped Pin",
@@ -40,24 +33,16 @@ export async function POST(req: Request) {
     const waypointStr = waypoints.join(";");
     distance_km = await fetchOsrmDistance(waypointStr);
   }
-
-  // ── 2. Weather modifier from Convex ───────────────────────────────────────
   const weatherModifier = await convex.query(api.routes.getWeatherModifier, {
     condition: weather,
   });
-
-  // ── 3. Vehicle config from Convex ─────────────────────────────────────────
   const vehicleConfig = await convex.query(api.routes.getVehicleConfig, {
     vehicle,
   });
-
-  // ── 3.5 System setting (Iterations) ───────────────────────────────────────
   const iterationsSetting = await convex.query(api.routes.getSystemSetting, {
     key: "monte_carlo_tests",
   });
   const iterations = iterationsSetting?.value ?? 500;
-
-  // ── 4. Run Monte Carlo simulation ─────────────────────────────────────────
   const pythonUrl = process.env.PYTHON_API_URL || "http://localhost:8000";
   const simRes = await fetch(`${pythonUrl}/simulate`, {
     method: "POST",
@@ -72,14 +57,10 @@ export async function POST(req: Request) {
       iterations,
     }),
   });
-
   if (!simRes.ok) {
     return Response.json({ error: "Simulation engine error" }, { status: simRes.status });
   }
-
   const data = await simRes.json();
-
-  // ── 5. Log the run to Convex ──────────────────────────────────────────────
   await convex.mutation(api.routes.logSimulation, {
     origin: origin ?? "Custom PIN",
     destination: destination ?? "Custom PIN",
@@ -95,8 +76,6 @@ export async function POST(req: Request) {
     result_max: data.max,
     result_avg: data.avg,
   });
-
-  // ── 6. Build factor breakdown for selected vehicle ────────────────────────
   const factors = {
     ...(data.factors || {}),
     base_travel_min:    data.factors?.base_travel_min    ?? data.base_travel_min    ?? null,
@@ -106,7 +85,6 @@ export async function POST(req: Request) {
     speed_kph:          vehicleConfig?.base_speed_kph    ?? null,
     capacity:           vehicleConfig?.capacity          ?? null,
   };
-
   return Response.json({
     min: data.min,
     max: data.max,
@@ -117,9 +95,6 @@ export async function POST(req: Request) {
     factors
   });
 }
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
 async function fetchOsrmDistance(waypointStr: string): Promise<number> {
   try {
     const res = await fetch(
@@ -131,10 +106,7 @@ async function fetchOsrmDistance(waypointStr: string): Promise<number> {
       return parseFloat((json.routes[0].distance / 1000).toFixed(3));
     }
   } catch {
-    // fall through 
   }
-  
-  // If OSRM fails entirely, we just roughly guess using the first and last point
   const pts = waypointStr.split(";");
   const first = pts[0].split(",");
   const last = pts[pts.length - 1].split(",");
@@ -142,4 +114,3 @@ async function fetchOsrmDistance(waypointStr: string): Promise<number> {
     (haversineDist(Number(first[1]), Number(first[0]), Number(last[1]), Number(last[0])) * 1.2).toFixed(3)
   );
 }
-

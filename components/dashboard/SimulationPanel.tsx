@@ -1,5 +1,4 @@
 "use client";
-
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,7 +6,6 @@ import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { LocationState, TERMINAL_COORDINATES, TerminalName, UI_TOWNS } from "@/lib/constants";
 import { ArrowUpDown, Bus, Car, CloudRain, CloudSun, Lightbulb, Zap } from "lucide-react";
 import { useRef, useState } from "react";
-
 interface SimulationPanelProps {
   origin: LocationState;
   destination: LocationState;
@@ -17,7 +15,6 @@ interface SimulationPanelProps {
   onSwap: () => void;
   isSimulating: boolean;
 }
-
 export function SimulationPanel({
   origin,
   destination,
@@ -31,11 +28,8 @@ export function SimulationPanel({
   const [weather, setWeather] = useState<"clear" | "rain">("clear");
   const timeRef = useRef<HTMLInputElement>(null);
   const [isPeak, setIsPeak] = useState(true);
-
   const handleSelectionChange = (val: string, type: "origin" | "destination") => {
     if (val === "Dropped Pin") return;
-
-    // Disallow identical hardcoded terminals natively by automatically swapping them
     if (type === "origin" && val === destination.name) {
       onSwap();
       return;
@@ -44,20 +38,17 @@ export function SimulationPanel({
       onSwap();
       return;
     }
-
     const coords = TERMINAL_COORDINATES[val as Exclude<TerminalName, "Dropped Pin">];
     if (coords) {
       if (type === "origin") onOriginUpdate(coords.lat, coords.lng);
       else onDestinationUpdate(coords.lat, coords.lng);
     }
   };
-
   const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const time = e.target.value;
     const hour = parseInt(time.split(":")[0]);
     setIsPeak(hour >= 6 && hour <= 9 || hour >= 17 && hour <= 20);
   };
-
   return (
     <section className="lg:col-span-3 space-y-6">
       <Card className="p-5 shadow-sm">
@@ -123,8 +114,6 @@ export function SimulationPanel({
               )}
             </NativeSelect>
           </div>
-
-
           <div>
             <p className="text-[10px] font-bold uppercase text-muted-foreground mb-1.5 block">
               Vehicle
@@ -216,7 +205,6 @@ export function SimulationPanel({
           </Button>
         </div>
       </Card>
-
       <Card className="p-4 bg-emerald-50 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/30">
         <div className="flex gap-3">
           <Lightbulb className="size-4 text-emerald-600 mt-0.5 shrink-0" />
