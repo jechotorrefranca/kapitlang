@@ -1,58 +1,48 @@
-# Kapit Lang: A Web-Based Application for Simulating PUV Terminal Dynamics in Bulacan
+# Kapit Lang: PUV Terminal Simulation
 
 ## Project Overview
 
-**Kapit Lang** aims to address the daily travel unpredictability experienced by local commuters in Bulacan. Standard navigation applications calculate travel times based solely on road distance and vehicle traffic, rendering them inadequate for commuters relying on Public Utility Vehicles (PUVs). 
-
-To bridge this gap, our team developed a web-based stochastic simulation application that provides realistic, probability-based commute estimates. The system actively models the localized "fill-and-go" terminal dynamics, rush hour queue delays, and frequent en-route stops characteristic of jeepneys and UV Express vans operating along the MacArthur Highway.
+**Kapit Lang** aims to address the daily travel unpredictability experienced by local commuters in Bulacan. It is a web-based stochastic simulation application that provides realistic, probability-based commute estimates by modeling terminal dynamics and en-route delays along MacArthur Highway.
 
 ## Key Features
 
-- **Stochastic Simulation:** Provides realistic, probability-based commute estimates rather than just fixed distance/time calculations.
-- **Terminal Dynamics Modeling:** Actively simulates the "fill-and-go" behavior of PUVs at terminals.
-- **Tailored for Bulacan:** Specifically designed for MacArthur Highway routes (Jeepneys and UV Express).
-- **Congestion Awareness:** Models rush hour queue delays and frequent stops.
+- **Stochastic Simulation:** Probability-based commute estimates.
+- **Terminal Dynamics:** Simulates "fill-and-go" behavior of local PUVs.
+- **Bulacan Specific:** Designed for MacArthur Highway routes.
+- **Congestion Modeling:** Accounts for rush hour and frequent stops.
 
 ## Tech Stack
 
-This project is built using:
-
-- **Frontend:** [Next.js](https://nextjs.org/) (React)
-- **Backend:** [Convex](https://convex.dev/) (Database & Serverless Logic)
-- **Styling:** [Tailwind CSS](https://tailwindcss.com/) & [Shadcn UI](https://ui.shadcn.com/)
-- **Icons:** [Lucide React](https://lucide.dev/)
+- **Frontend:** Next.js (React)
+- **Database & Logic:** Convex
+- **Simulation Engine:** Python (FastAPI, Uvicorn)
+- **3D Rendering:** React Three Fiber (Three.js)
+- **Styling:** Tailwind CSS & Shadcn UI
+- **Icons:** Lucide React
+- **Quality Assurance:** Husky, lint-staged, oxlint, and TypeScript
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js installed
-- Convex account (for backend)
+- Node.js
+- Python
+- Convex account
 
 ### Installation
 
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   cd kapitlang
-   ```
-
-2. Install dependencies:
+1. Install dependencies:
    ```bash
    npm install
+   pip install -r lib/sim/requirements.txt
    ```
 
-3. Run the development server:
+2. Run the development server:
    ```bash
    npm run dev
    ```
 
-The application will be available at `http://localhost:3000`.
+## Development Workflow
 
-## Learn More
-
-To learn more about the technologies used:
-
-- [Next.js Documentation](https://nextjs.org/docs)
-- [Convex Documentation](https://docs.convex.dev/)
-- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
+- **Linting & Types:** `npm run lint:fix`
+- **Pre-commit Hooks:** Husky ensures type safety and linting before every commit.
