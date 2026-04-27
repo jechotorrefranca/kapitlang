@@ -138,7 +138,7 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-5xl mx-auto p-6 lg:p-10 space-y-8 animate-in fade-in duration-700">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div className="space-y-1">
           <h1 className="text-3xl font-black tracking-tight uppercase flex items-center gap-3">
             <Settings2 className="size-8 text-emerald-600" />
@@ -148,12 +148,12 @@ export default function SettingsPage() {
             Fine-tune the stochastic engine parameters and global transit rules.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 sm:justify-end">
           <Button
             variant="ghost"
             onClick={handleReset}
             disabled={isSaving}
-            className="text-slate-500 hover:text-red-600 font-bold gap-2 text-xs"
+            className="text-slate-500 hover:text-red-600 font-bold gap-2 text-xs font-sans"
           >
             <RotateCcw className="size-3" />
             Reset to Defaults
@@ -161,7 +161,7 @@ export default function SettingsPage() {
           <Button
             onClick={handleSaveAll}
             disabled={isSaving}
-            className="bg-emerald-600 hover:bg-emerald-700 font-bold gap-2 shadow-md shadow-emerald-500/10 px-6"
+            className="bg-emerald-600 hover:bg-emerald-700 font-bold gap-2 shadow-md shadow-emerald-500/10 px-6 font-sans"
           >
             <Save className="size-4" />
             {isSaving ? "Saving..." : "Save Changes"}
@@ -250,10 +250,10 @@ export default function SettingsPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-bold text-slate-500 uppercase">Speed (kph)</Label>
-                      <Input type="number" value={v.base_speed_kph} onChange={(e) => updateVehicle(idx, { base_speed_kph: parseInt(e.target.value) || 0 })} />
+                      <Label className="text-[10px] font-bold text-slate-500 uppercase font-sans">Speed (kph)</Label>
+                      <Input type="number" value={v.base_speed_kph} onChange={(e) => updateVehicle(idx, { base_speed_kph: parseInt(e.target.value) || 0 })} className="font-sans" />
                     </div>
                     <div className="space-y-2">
                       <Label className="text-[10px] font-bold text-slate-500 uppercase">Capacity</Label>
