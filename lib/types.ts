@@ -33,6 +33,7 @@ export interface SimulationResult {
   factors: SimulationFactors;
   is_experimental?: boolean;
   iterations?: number;
+  logId?: string;
 }
 
 export interface VehicleConfig {

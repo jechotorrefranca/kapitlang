@@ -30,10 +30,12 @@ import { api } from "@/convex/_generated/api";
 import { HIGHWAY_SEQUENCE } from "@/lib/constants";
 import { usePaginatedQuery, useQuery } from "convex/react";
 import { format } from "date-fns";
-import { ArrowRight, Bus, Car, Cloud, Filter, History, Loader2, RefreshCw, Sun, X } from "lucide-react";
+import { ArrowRight, BarChart3, Bus, Car, Cloud, Filter, History, Loader2, RefreshCw, Sun, X } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 const ITEMS_PER_PAGE = 10;
 export default function RoutesPage() {
+  const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const [vehicleFilter, setVehicleFilter] = useState<string>("all");
   const [weatherFilter, setWeatherFilter] = useState<string>("all");
@@ -218,7 +220,11 @@ export default function RoutesPage() {
             </TableHeader>
             <TableBody>
               {paginatedResults.map((log) => (
-                <TableRow key={log._id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50 transition-colors">
+                <TableRow
+                  key={log._id}
+                  className="hover:bg-emerald-50/40 dark:hover:bg-emerald-950/20 transition-colors cursor-pointer group"
+                  onClick={() => router.push(`/insights?origin=${encodeURIComponent(log.origin)}&destination=${encodeURIComponent(log.destination)}&logId=${log._id}`)}
+                >
                   <TableCell className="py-4">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-slate-700 dark:text-slate-300">{log.origin}</span>
@@ -251,8 +257,13 @@ export default function RoutesPage() {
                       Range: {Math.round(log.result_min)}-{Math.round(log.result_max)}m
                     </div>
                   </TableCell>
-                  <TableCell className="text-right text-xs text-slate-400 font-medium">
-                    {format(new Date(log._creationTime), "MMM d, h:mm a")}
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-3">
+                      <span className="text-xs text-slate-400 font-medium">
+                        {format(new Date(log._creationTime), "MMM d, h:mm a")}
+                      </span>
+                      <BarChart3 className="size-3.5 text-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

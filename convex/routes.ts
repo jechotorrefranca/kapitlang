@@ -175,7 +175,7 @@ export const logSimulation = mutation({
     result_avg: v.number(),
   },
   handler: async (ctx, args) => {
-    await ctx.db.insert("simulationLogs", args);
+    return await ctx.db.insert("simulationLogs", args);
   },
 });
 export const clearRouteSegments = mutation({
@@ -236,6 +236,52 @@ export const getChaosFactors = query({
   },
 });
 
+export const getDistinctRoutePairs = query({
+  args: {},
+  handler: async (ctx) => {
+    const logs = await ctx.db.query("simulationLogs").collect();
+    const seen = new Set<string>();
+    const pairs: { origin: string; destination: string; count: number; latestAvg: number; latestMin: number; latestMax: number }[] = [];
+    for (const log of logs) {
+      const key = `${log.origin}|${log.destination}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        const routeLogs = logs.filter((l) => l.origin === log.origin && l.destination === log.destination);
+        const latest = routeLogs[routeLogs.length - 1];
+        pairs.push({
+          origin: log.origin,
+          destination: log.destination,
+          count: routeLogs.length,
+          latestAvg: latest?.result_avg ?? 0,
+          latestMin: latest?.result_min ?? 0,
+          latestMax: latest?.result_max ?? 0,
+        });
+      }
+    }
+    return pairs;
+  },
+});
+
+export const getSimulationLogsByRoute = query({
+  args: {
+    origin: v.string(),
+    destination: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const logs = await ctx.db.query("simulationLogs").collect();
+    return logs
+      .filter((l) => l.origin === args.origin && l.destination === args.destination)
+      .sort((a, b) => a._creationTime - b._creationTime);
+  },
+});
+
+export const getSimulationLogById = query({
+  args: { id: v.id("simulationLogs") },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.id);
+  },
+});
+
 export const upsertChaosFactor = mutation({
   args: {
     key: v.string(),
@@ -256,6 +302,32 @@ export const upsertChaosFactor = mutation({
         enabled: args.enabled,
         value: args.value,
       });
+    }
+  },
+});
+
+// Insights Traffic Modifiers
+export const getInsightsModifiers = query({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db.query("insightsModifiers").collect();
+  },
+});
+
+export const upsertInsightsModifier = mutation({
+  args: {
+    day: v.string(),
+    congestion: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("insightsModifiers")
+      .withIndex("by_day", (q) => q.eq("day", args.day))
+      .unique();
+    if (existing) {
+      await ctx.db.patch(existing._id, { congestion: args.congestion });
+    } else {
+      await ctx.db.insert("insightsModifiers", args);
     }
   },
 });

@@ -90,7 +90,7 @@ export default function DashboardPage() {
         onDestinationUpdate={handleDestinationUpdate}
       />
       <section className="lg:col-span-4 space-y-6">
-        <ForecastResults status={simulationStatus} result={simulationResult} />
+        <ForecastResults status={simulationStatus} result={simulationResult} origin={origin.name} destination={destination.name} />
         <RecentRoutes />
       </section>
 

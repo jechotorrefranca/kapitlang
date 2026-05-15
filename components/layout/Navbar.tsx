@@ -1,6 +1,6 @@
 "use client";
 
-import { Beaker, Bus, LayoutDashboard, Settings } from "lucide-react";
+import { BarChart3, Beaker, Bus, LayoutDashboard, Settings } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -84,6 +84,10 @@ export function Navbar() {
             <Link href="/routes" className={getLinkClassName("/routes")}>
               <Bus className="size-5 md:size-4" />
               <span className="hidden md:inline">Routes</span>
+            </Link>
+            <Link href="/insights" className={getLinkClassName("/insights")}>
+              <BarChart3 className="size-5 md:size-4" />
+              <span className="hidden md:inline">Insights</span>
             </Link>
             {isExp && (
               <Link href="/experimental" className={getLinkClassName("/experimental")}>

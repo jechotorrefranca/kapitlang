@@ -83,7 +83,7 @@ export async function POST(req: Request) {
 
   const data = await simRes.json();
 
-  await convex.mutation(api.routes.logSimulation, {
+  const logId = await convex.mutation(api.routes.logSimulation, {
     origin: origin ?? "Custom PIN",
     destination: destination ?? "Custom PIN",
     originLat,
@@ -119,7 +119,8 @@ export async function POST(req: Request) {
     weather,
     factors,
     is_experimental: experimentalEnabled,
-    iterations: data.iterations || iterations
+    iterations: data.iterations || iterations,
+    logId,
   });
 }
 async function fetchOsrmDistance(waypointStr: string): Promise<number> {

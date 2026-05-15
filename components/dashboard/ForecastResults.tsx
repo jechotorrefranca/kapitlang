@@ -1,12 +1,15 @@
 import { Card } from "@/components/ui/card";
 import { SimulationResult } from "@/lib/types";
-import { Bomb, Bus, Car, FlaskConical, Info, PlayCircle, Sparkles } from "lucide-react";
+import { ArrowUpRight, Bomb, Bus, Car, FlaskConical, Info, PlayCircle, Sparkles } from "lucide-react";
+import Link from "next/link";
 import { SimulationLoader } from "../3D/SimulationLoader";
 interface ForecastResultsProps {
   status: "idle" | "simulating" | "completed";
   result: SimulationResult | null;
+  origin?: string;
+  destination?: string;
 }
-export function ForecastResults({ status, result }: ForecastResultsProps) {
+export function ForecastResults({ status, result, origin, destination }: ForecastResultsProps) {
   if (status === "idle") {
     return (
       <Card className="p-8 shadow-sm flex flex-col items-center justify-center text-center space-y-4 min-h-100 bg-linear-to-br from-background to-muted/20 border-dashed">
@@ -227,6 +230,19 @@ export function ForecastResults({ status, result }: ForecastResultsProps) {
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Insights Link */}
+        {origin && destination && (
+          <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+            <Link
+              href={`/insights?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}${result?.logId ? `&logId=${result.logId}` : ""}`}
+              className="flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200/50 dark:border-emerald-800/30 text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-950/40 transition-colors group"
+            >
+              <ArrowUpRight className="size-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+              <span className="text-[11px] font-black uppercase tracking-wider">Explore Weekly Insights</span>
+            </Link>
           </div>
         )}
       </div>

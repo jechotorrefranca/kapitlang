@@ -48,4 +48,8 @@ export default defineSchema({
     enabled: v.boolean(),
     value: v.number(), // percentage or minutes
   }).index("by_key", ["key"]),
+  insightsModifiers: defineTable({
+    day: v.string(),
+    congestion: v.number(),
+  }).index("by_day", ["day"]),
 });
