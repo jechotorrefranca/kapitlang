@@ -33,7 +33,7 @@ export function Footer() {
             Kapit Lang
           </span>
           <p className="text-[10px] font-bold text-muted-foreground/40 tracking-[0.2em] uppercase border-l pl-3 border-border">
-            v1.0
+            v2.0
           </p>
         </div>
         <div className="flex gap-8 text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
